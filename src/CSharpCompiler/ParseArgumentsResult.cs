@@ -4,7 +4,8 @@ internal class ParseArgumentsResult
 {
     public ParseArgumentsResult(
         IReadOnlyList<string> filesPath,
-        string programArguments)
+        string programArguments
+    )
     {
         FilesPath = filesPath;
         ProgramArguments = programArguments;

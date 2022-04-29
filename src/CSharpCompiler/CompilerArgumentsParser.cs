@@ -13,7 +13,7 @@ internal static class CompilerArgumentsParser
 
         return new ParseArgumentsResult(
             filesList,
-            index >= arguments.Length - 1 || arguments.Length == 0 
+            index >= arguments.Length - 1 || arguments.Length == 0
                 ? ""
                 : string.Join(" ", arguments[(index + 1)..])
         );
