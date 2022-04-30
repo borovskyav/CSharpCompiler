@@ -2,14 +2,14 @@ using System.Reflection;
 
 namespace CSharpCompiler;
 
-internal interface IExternalCodeRunner
+internal interface IExternalLibraryRunner
 {
-    Task<int> Run(string dllPath, string[] arguments);
+    Task<int> Run(string dllPath, IReadOnlyList<string> arguments);
 }
 
-internal class InProcessCodeRunner : IExternalCodeRunner
+internal class InProcessLibraryRunner : IExternalLibraryRunner
 {
-    public async Task<int> Run(string dllPath, string[] arguments)
+    public async Task<int> Run(string dllPath, IReadOnlyList<string> arguments)
     {
         var assembly = Assembly.LoadFrom(dllPath);
 

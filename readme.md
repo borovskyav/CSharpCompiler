@@ -12,7 +12,8 @@ Write and package a C# program which does the following:
 
 - [x] Работающий прототип
 - [ ] Интеграционные тесты с разнымы сценариями файлов
-  - [ ] Выделить мета-класс для удобного тестирования
+  - [x] Выделить мета-класс для удобного тестирования
+- [x] Продумать Program.cs и всякие красивые остановки на Ctrl+C
 - [ ] CI для тестирования
 - [ ] CI для выкладывания релизов по тегу
   - [ ] Запустить и протестировать Self-contained
@@ -28,3 +29,5 @@ Write and package a C# program which does the following:
   - [ ] Many instances of the program may be running in parallel
   - [ ] The program should be automatically tested
   - [ ] Unsafe code support as an option
+- [ ] Прокинуть CancellationToken везде, где я забыл это сделать
+- [ ] Сделать красивые сообщения логгирования
