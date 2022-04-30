@@ -8,25 +8,23 @@ Write and package a C# program which does the following:
 - Runs it with all other arguments 
 - The code should be reliable, clear and understandable
 
-**Todo's**
+**Todo:**
 
-- [ ] 
-- [ ] 
+- [x] Работающий прототип
+- [ ] Интеграционные тесты с разнымы сценариями файлов
+  - [ ] Выделить мета-класс для удобного тестирования
+- [ ] CI для тестирования
+- [ ] CI для выкладывания релизов по тегу
+  - [ ] Запустить и протестировать Self-contained
+  - [ ] Windows x86-x64 (.zip)
+  - [ ] MacOS x86 (.tar.gz)
+  - [ ] MacOS ARM (.tar.gz) - со звездочкой, если будет время
+- [ ] Рефакторинг
+  - [ ] Декомпозиция
+- [ ] Additional requirements
 
-Additional requirements:
-
-- [ ]  It should natively work on:
-  - [ ]  Windows 32-bits and 64-bits
-  - [ ]  Linux glibc and musl (or Mac, your choice)
-- [ ]  Compilation result should be cached between runs at a system-specific proper location following
-  operating system conventions for that
-- [ ]  Many instances of the program may be running in parallel
-- [ ]  The program should be automatically tested
-- [ ]  The proper error handling should be implemented
-- [ ]  Unsafe code support as an option
-
-**Expected artifacts:**
-
-- GitHub repository with sources
-- Self-contained .zip distributions for Windows
-- Self-contained .tar.gz distributions for Linux (or Mac)
+  - [ ] Compilation result should be cached between runs at a system-specific proper location following
+    operating system conventions for that
+  - [ ] Many instances of the program may be running in parallel
+  - [ ] The program should be automatically tested
+  - [ ] Unsafe code support as an option
