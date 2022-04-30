@@ -22,7 +22,7 @@ internal class Program
 
             var filesSyntaxTree = new FilesSyntaxTree(files);
 
-            var nugetPackages = NugetVersionParser.Parse(filesSyntaxTree.GetAllCommentRows());
+            var nugetPackages = NugetPackagesParser.Parse(filesSyntaxTree.GetAllCommentRows());
             if(nugetPackages.Count != 0)
                 throw new NotImplementedException();
             else
