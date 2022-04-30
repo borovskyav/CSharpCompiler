@@ -40,8 +40,8 @@ public class CompilationResult
             {
                 (true, true) => BuildCompilationOutputString(),
                 (false, false) => BuildCompilationErrorString() + Environment.NewLine + BuildCompilationWarningsString(),
-                (true, false) => BuildCompilationErrorString() + Environment.NewLine + BuildCompilationOutputString(),
-                (false, true) => BuildCompilationWarningsString(),
+                (true, false) => BuildCompilationWarningsString() + Environment.NewLine + BuildCompilationOutputString(),
+                (false, true) => BuildCompilationOutputString(),
             };
     }
 
@@ -49,7 +49,7 @@ public class CompilationResult
         => $"Compilation errors:{Environment.NewLine}{string.Join(Environment.NewLine, Errors)}";
 
     private string BuildCompilationWarningsString()
-        => $"Warnings:{Environment.NewLine}{string.Join(Environment.NewLine, Errors)}";
+        => $"Warnings:{Environment.NewLine}{string.Join(Environment.NewLine, Warnings)}";
 
     private string BuildCompilationOutputString()
         => $"Output: {DllPath}";
@@ -61,11 +61,16 @@ public class RoslynGames
     // todo подумать про вывод ворнингов
     // todo подумать про подюключение библиотек
     // todo подумать про настройку дефолтных флагов. Какие ставить? Такие-же как в моем приложении стоят? Какой-то кастом?
-    public static CompilationResult Compile(string workingDirectory, IReadOnlyList<SyntaxTree> trees)
+    public static CompilationResult Compile(string workingDirectory, IReadOnlyList<SyntaxTree> trees, IReadOnlyList<string> externalLibs)
     {
         var dllName = $"{Guid.NewGuid()}.dll";
-
-        var compilation = CSharpCompilation.Create(dllName, trees, defaultReferences, defaultCompilationOptions);
+        
+        var compilation = CSharpCompilation.Create(
+            dllName, 
+            trees, 
+            defaultReferences.Concat(externalLibs.Select(x => MetadataReference.CreateFromFile(x))), 
+            defaultCompilationOptions);
+        
         var dllPath = Path.Combine(workingDirectory, dllName);
         var result = compilation.Emit(dllPath);
         if(!result.Success)
@@ -86,6 +91,9 @@ public class RoslynGames
                 MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Console.dll")),
                 MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Runtime.dll")),
                 MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Core.dll")),
+                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Private.Uri.dll")),
+                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Net.Http.dll")),
+                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "netstandard.dll")),
             };
 
     private static readonly CSharpCompilationOptions defaultCompilationOptions =
