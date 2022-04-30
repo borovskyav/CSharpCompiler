@@ -55,6 +55,7 @@ internal class Program
 
             Console.WriteLine(exception.Message);
             Environment.Exit(1);
+            return 0;
         }
     }
 

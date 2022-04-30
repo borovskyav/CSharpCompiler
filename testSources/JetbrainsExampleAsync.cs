@@ -10,6 +10,7 @@ class Program
 {
     static async Task Main(string[] args) 
     {
+        Console.WriteLine("Start fetching data...");
         var client = new RestClient("https://jsonplaceholder.typicode.com");
         foreach (var arg in args) {
             var request = new RestRequest("todos/{id}");

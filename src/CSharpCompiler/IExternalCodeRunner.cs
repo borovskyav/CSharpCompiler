@@ -27,7 +27,6 @@ internal class InProcessCodeRunner : IExternalCodeRunner
         if(mainList.Count > 1)
             throw new Exception(">1");
 
-        //todo async main
         var result = mainList[0].mi.Invoke(mainList[0].type, new object?[] { arguments });
         if(result == null)
             return 0;

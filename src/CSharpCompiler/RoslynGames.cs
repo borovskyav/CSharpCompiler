@@ -57,9 +57,6 @@ public class CompilationResult
 
 public class RoslynGames
 {
-    // todo подумать про вывод ошибок компиляции
-    // todo подумать про вывод ворнингов
-    // todo подумать про подюключение библиотек
     // todo подумать про настройку дефолтных флагов. Какие ставить? Такие-же как в моем приложении стоят? Какой-то кастом?
     public static CompilationResult Compile(string workingDirectory, IReadOnlyList<SyntaxTree> trees, IReadOnlyList<string> externalLibs)
     {
@@ -97,7 +94,7 @@ public class RoslynGames
             };
 
     private static readonly CSharpCompilationOptions defaultCompilationOptions =
-        new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        new CSharpCompilationOptions(OutputKind.ConsoleApplication)
             .WithOverflowChecks(true)
             .WithOptimizationLevel(OptimizationLevel.Release)
             .WithAllowUnsafe(true)
