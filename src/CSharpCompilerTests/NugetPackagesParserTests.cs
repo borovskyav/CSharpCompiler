@@ -17,7 +17,7 @@ public class NugetPackagesParserTests
         var result = NugetPackagesParser.Parse(new[] { comment });
         result.Count.Should().Be(isParsed ? 1 : 0);
         if(isParsed)
-            result[package].Should().Be(NuGetVersion.Parse(version));
+            result[package!].Should().Be(NuGetVersion.Parse(version));
     }
 
     [Test]
