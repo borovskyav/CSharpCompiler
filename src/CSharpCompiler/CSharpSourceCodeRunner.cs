@@ -75,7 +75,7 @@ internal class CSharpSourceCodeRunner
                    .ToArray();
         }
 
-        logger.Info("No included nuget packages, skip downloading packages...");
+        logger.Info("No included nuget packages, skip downloading step...");
         return Array.Empty<string>();
     }
 

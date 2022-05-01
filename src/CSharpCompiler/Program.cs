@@ -18,12 +18,12 @@ internal class Program
 
     public static async Task<int> Main(string[] arguments)
     {
-        var consoleLogger = CreateLogger();
+        var logger = CreateLogger();
         var cancellationToken = ConfigureGracefulStop();
         try
         {
             var runner = new InProcessLibraryRunner();
-            var codeRunner = new CSharpSourceCodeRunner(consoleLogger, runner);
+            var codeRunner = new CSharpSourceCodeRunner(logger, runner);
             var parseResult = ConsoleArgumentsParser.Parse(arguments);
             return await codeRunner.RunAsync(parseResult, cancellationToken);
         }
@@ -35,7 +35,7 @@ internal class Program
             if(string.IsNullOrEmpty(exception.Message))
                 throw;
 
-            consoleLogger.Error(exception.Message);
+            logger.Error(exception.Message);
             return 1;
         }
     }

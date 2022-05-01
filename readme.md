@@ -11,7 +11,7 @@ Write and package a C# program which does the following:
 **Todo:**
 
 - [x] Работающий прототип
-- [ ] Интеграционные тесты с разнымы сценариями файлов
+- [x] Интеграционные тесты с разнымы сценариями файлов
   - [x] Выделить мета-класс для удобного тестирования
 - [x] Продумать Program.cs и всякие красивые остановки на Ctrl+C
 - [ ] CI для тестирования
@@ -22,6 +22,9 @@ Write and package a C# program which does the following:
   - [ ] MacOS ARM (.tar.gz) - со звездочкой, если будет время
 - [ ] Рефакторинг
   - [ ] Декомпозиция
+- [ ] Проверить что скомпилированная dll работает
+  - [ ] Собрать все файлы в одной папке
+  - [ ] Генерация runtimeconfig.json
 - [ ] Additional requirements
 
   - [ ] Compilation result should be cached between runs at a system-specific proper location following
