@@ -22,8 +22,8 @@ jobs:
         run: dotnet restore src/CSharpCompiler.sln
 
       - name: Build
-        run: dotnet build src/CSharpCompiler.sln
+        run: dotnet build --configuration Release --no-restore src/CSharpCompiler.sln
 
       - name: Test
-        run: dotnet test src/CSharpCompiler.sln          
+        run: dotnet test --no-build src/CSharpCompiler.sln          
 
