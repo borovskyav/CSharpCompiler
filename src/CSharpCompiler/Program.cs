@@ -13,7 +13,7 @@ internal class Program
 #if DEBUG
     private const LogLevel logLevel = LogLevel.Debug;
 #else
-    private const LogLevel logLevel = LogLevel.Information;
+    private const LogLevel logLevel = LogLevel.Info;
 #endif
 
     public static async Task<int> Main(string[] arguments)
