@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install .NET
+      - name: Install .NET SDK
         uses: actions/setup-dotnet@v2
         with:
           dotnet-version: '6.0.x'
@@ -25,5 +25,5 @@ jobs:
         run: dotnet build --configuration Release --no-restore src/CSharpCompiler.sln
 
       - name: Test
-        run: dotnet test --no-build src/CSharpCompiler.sln          
+        run: dotnet test --no-restore src/CSharpCompiler.sln          
 
