@@ -19,11 +19,11 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet restore src/CSharpCompiler.sln
 
       - name: Build
-        run: dotnet build
+        run: dotnet build src/CSharpCompiler.sln
 
       - name: Test
-        run: dotnet test           
+        run: dotnet test src/CSharpCompiler.sln          
 
