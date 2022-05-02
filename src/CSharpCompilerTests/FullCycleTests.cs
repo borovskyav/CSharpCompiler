@@ -4,14 +4,12 @@ namespace CSharpCompilerTests;
 
 public class FullCycleTests
 {
-    private CSharpSourceCodeRunner? codeRunner;
-
     [SetUp]
     public void SetUp()
     {
         codeRunner = new CSharpSourceCodeRunner(new ConsoleLog(), new InProcessLibraryRunner());
     }
-    
+
     [Test]
     public async Task SimpleConsoleWriteLineTest()
     {
@@ -29,7 +27,7 @@ public class FullCycleTests
     [Test]
     public async Task ThrowExceptionTest()
     {
-        var data2 = new CSharpSourceCodeRunnerData(GetFilesPath("ThrowException.cs"), new []{"Hello", "World!"});
+        var data2 = new CSharpSourceCodeRunnerData(GetFilesPath("ThrowException.cs"), new[] { "Hello", "World!" });
         Func<Task<int>> action = async () => await codeRunner!.RunAsync(data2);
         (await action.Should().ThrowAsync<Exception>()).WithMessage("Hello, World! =(");
     }
@@ -58,7 +56,7 @@ public class FullCycleTests
     [Test]
     public async Task MultipleFilesLoggerTest()
     {
-        var data = new CSharpSourceCodeRunnerData(GetFilesInFolder("MultipleFilesLogger"), new []{"print", "something"});
+        var data = new CSharpSourceCodeRunnerData(GetFilesInFolder("MultipleFilesLogger"), new[] { "print", "something" });
         (await codeRunner!.RunAsync(data)).Should().Be(0);
     }
 
@@ -69,7 +67,7 @@ public class FullCycleTests
             throw new Exception();
 
         var sourcesDirectory = Path.Combine(gitDirectory, "testSources", folderName);
-        if (!Directory.Exists(sourcesDirectory))
+        if(!Directory.Exists(sourcesDirectory))
             throw new Exception();
 
         return Directory.GetFiles(sourcesDirectory);
@@ -83,7 +81,7 @@ public class FullCycleTests
 
         return fileNames.Select(x => Path.Combine(gitDirectory, "testSources", x)).ToArray();
     }
-    
+
     public static string? FindDirectoryUpRecursive(string directoryName, string fromDirName)
     {
         try
@@ -95,6 +93,7 @@ public class FullCycleTests
                     return currentDir;
                 currentDir = Path.GetDirectoryName(currentDir);
             }
+
             return null;
         }
         catch
@@ -102,4 +101,6 @@ public class FullCycleTests
             return null;
         }
     }
+
+    private CSharpSourceCodeRunner? codeRunner;
 }
