@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rid: [ linux-x64, win-x64, win-x86, osx-x64 ]
+        rid: [ 'linux-x64', 'win-x64', 'win-x86', 'osx-x64' ]
     runs-on: ubuntu-latest
 
     steps:
