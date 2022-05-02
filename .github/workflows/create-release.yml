@@ -22,23 +22,23 @@ jobs:
       - name: Prepare zip archives
         run: zip -qq -r ${{ matrix.rid }}.zip publish
         working-directory: ./src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}
-        if: matrix.os == 'win-x64' || matrix.os == 'win-x86'
+        if: matrix.rid == 'win-x64' || matrix.rid == 'win-x86'
 
       - name: Prepare tar.gz archives
         run: tar -czvf ${{ matrix.rid }}.tar.gz publish/
         working-directory: ./src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}
-        if: matrix.os == 'linux-x64' || matrix.os == 'osx-x64'
+        if: matrix.rid == 'linux-x64' || matrix.rid == 'osx-x64'
 
       - name: Publish artifact
         uses: actions/upload-artifact@v3
         with:
           name: ReleaseArtifact-${{ matrix.rid }}
           path: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/${{ matrix.rid }}.zip
-        if: matrix.os == 'win-x64' || matrix.os == 'win-x86'
+        if: matrix.rid == 'win-x64' || matrix.rid == 'win-x86'
 
       - name: Publish artifact
         uses: actions/upload-artifact@v3
         with:
           name: ReleaseArtifact-${{ matrix.rid }}
           path: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/${{ matrix.rid }}.tar.gz
-        if: matrix.os == 'linux-x64' || matrix.os == 'osx-x64'
+        if: matrix.rid == 'linux-x64' || matrix.rid == 'osx-x64'
