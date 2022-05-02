@@ -7,7 +7,7 @@ jobs:
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     strategy:
       matrix:
-        rid: [ 'linux-x64', 'win-x64', 'win-x86', 'osx-x64' ]
+        rid: [ linux-x64, win-x64, win-x86, osx-x64 ]
     runs-on: ubuntu-latest
 
     steps:
@@ -20,25 +20,62 @@ jobs:
         uses: montudor/action-zip@v1    
 
       - name: Prepare zip archives
-        run: zip -qq -r ${{ matrix.rid }}.zip publish
-        working-directory: ./src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}
+        run: zip -qq -r CSharpCompiler-${{ matrix.rid }}.zip .
+        working-directory: ./src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/publish
         if: matrix.rid == 'win-x64' || matrix.rid == 'win-x86'
 
       - name: Prepare tar.gz archives
-        run: tar -czvf ${{ matrix.rid }}.tar.gz publish/
-        working-directory: ./src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}
+        run: tar -czvf CSharpCompiler-${{ matrix.rid }}.tar.gz *
+        working-directory: ./src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/publish
         if: matrix.rid == 'linux-x64' || matrix.rid == 'osx-x64'
 
-      - name: Publish artifact
+      - name: Publish zip artifact
         uses: actions/upload-artifact@v3
         with:
           name: ReleaseArtifact-${{ matrix.rid }}
-          path: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/${{ matrix.rid }}.zip
+          path: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/publish/CSharpCompiler-${{ matrix.rid }}.zip
         if: matrix.rid == 'win-x64' || matrix.rid == 'win-x86'
 
-      - name: Publish artifact
+      - name: Publish tar.gz artifact
         uses: actions/upload-artifact@v3
         with:
           name: ReleaseArtifact-${{ matrix.rid }}
-          path: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/${{ matrix.rid }}.tar.gz
+          path: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/publish/CSharpCompiler-${{ matrix.rid }}.tar.gz
         if: matrix.rid == 'linux-x64' || matrix.rid == 'osx-x64'
+
+  create-github-release:
+    needs: prepare-release-artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download linux-x64 artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ReleaseArtifact-linux-x64
+
+      - name: Download osx-x64 artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ReleaseArtifact-osx-x64
+
+      - name: Download win-x64 artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ReleaseArtifact-win-x64
+
+      - name: Download win-x86 artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ReleaseArtifact-win-x86
+
+      - name: Create github release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            CSharpCompiler-linux-x64.tar.gz
+            CSharpCompiler-osx-x64.tar.gz
+            CSharpCompiler-win-x64.zip
+            CSharpCompiler-win-x86.zip 
+          token: ${{ secrets.GITHUB_TOKEN }}
+    
+          
+
