@@ -17,10 +17,7 @@ jobs:
   full-cycle-test:
     needs: publish
     uses: ./.github/workflows/full-cycle-test.yml
-      
 
-
-  
-
-
-
+  create-release:
+    needs: [ unit-test, full-cycle-test ]
+    uses: ./.github/workflows/create-release.yml

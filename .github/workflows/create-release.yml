@@ -1,0 +1,45 @@
+name: Create github release
+           
+on: workflow_call
+
+jobs:
+  prepare-release-artifacts:
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [ linux-x64, win-x64, win-x86, osx-x64 ]
+    runs-on: windows-latests
+
+    steps:
+      - name: Download artifact
+        uses: alehechka/download-tartifact@v1
+        with:
+          name: CSharpCompiler-${{ matrix.rid }}
+
+      - name: Install zip
+        uses: montudor/action-zip@v1    
+
+      - name: Prepare zip archives
+        run: zip -qq -r ${{ matrix.rid }}.zip publish
+        working-directory: ./src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}
+        if: matrix.os == 'win-x64' || matrix.os == 'win-x86'
+
+      - name: Prepare tar.gz archives
+        run: tar -czvf ${{ matrix.rid }}.tar.gz publish/
+        working-directory: ./src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}
+        if: matrix.os == 'linux-x64' || matrix.os == 'osx-x64'
+
+      - name: Publish artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ReleaseArtifact-${{ matrix.rid }}
+          path: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/${{ matrix.rid }}.zip
+        if: matrix.os == 'win-x64' || matrix.os == 'win-x86'
+
+      - name: Publish artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ReleaseArtifact-${{ matrix.rid }}
+          path: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/${{ matrix.rid }}.tar.gz
+        if: matrix.os == 'linux-x64' || matrix.os == 'osx-x64'

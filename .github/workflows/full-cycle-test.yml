@@ -1,4 +1,4 @@
-name: Continious Integration
+name: Full cycly test
            
 on: workflow_call
 
@@ -32,10 +32,3 @@ jobs:
 
       - name: Run multifile test
         run: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/publish/CSharpCompiler testSources/MultipleFilesLogger/1.cs testSources/MultipleFilesLogger/2.cs -- print something new
-      
-
-
-  
-
-
-
