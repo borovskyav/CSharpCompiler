@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         rid: [ linux-x64, win-x64, win-x86, osx-x64 ]
-    runs-on: windows-latests
+    runs-on: ubuntu-latest
 
     steps:
       - name: Download artifact
