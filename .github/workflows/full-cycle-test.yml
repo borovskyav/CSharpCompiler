@@ -21,14 +21,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      
-      - name: Install .NET SDK
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: '6.0.x'
 
-      - name: Publish for RID ${{ matrix.rid }}
-        run: dotnet publish -c Release -r ${{ matrix.rid }} --self-contained src/CSharpCompiler/CSharpCompiler.csproj
+      - name: Download artifact
+        uses: alehechka/download-tartifact@v1
+        with:
+          name: CSharpCompiler-${{ matrix.rid }}    
 
       - name: Run simple test
         run: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/publish/CSharpCompiler testSources/AsyncWork.cs

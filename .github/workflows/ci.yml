@@ -10,8 +10,12 @@ jobs:
     needs: build
     uses: ./.github/workflows/unit-test.yml
 
-  full-cycle-test:
+  publish:
     needs: build
+    uses: ./.github/workflows/publish.yml
+
+  full-cycle-test:
+    needs: publish
     uses: ./.github/workflows/full-cycle-test.yml
       
 
