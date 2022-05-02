@@ -58,8 +58,8 @@ public class FullCycleTests
     [Test]
     public async Task MultipleFilesLoggerTest()
     {
-        var data = new CSharpSourceCodeRunnerData(GetFilesInFolder("MultipleFilesLogger"), Array.Empty<string>());
-        (await codeRunner!.RunAsync(data)).Should().Be(37);
+        var data = new CSharpSourceCodeRunnerData(GetFilesInFolder("MultipleFilesLogger"), new []{"print", "something"});
+        (await codeRunner!.RunAsync(data)).Should().Be(0);
     }
 
     private IReadOnlyList<string> GetFilesInFolder(string folderName)
