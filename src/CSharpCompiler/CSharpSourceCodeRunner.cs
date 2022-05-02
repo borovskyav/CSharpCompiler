@@ -31,7 +31,7 @@ internal class CSharpSourceCodeRunner
         
         var unexistFiles = GetUnexistFiles(data.FilesPath);
         if(unexistFiles.Count > 0)
-            throw new FileNotFoundException($"One of more files not found: {string.Join(Environment.NewLine, unexistFiles)}");
+            throw new FileNotFoundException($"Some files not found: {string.Join(Environment.NewLine, unexistFiles)}");
         
         var filesSyntaxTree = new FilesSyntaxTree(data.FilesPath);
         
