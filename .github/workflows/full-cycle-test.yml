@@ -1,0 +1,44 @@
+name: Continious Integration
+           
+on: workflow_call
+
+jobs:
+  full-cycle-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            os: ubuntu-latest
+          - rid: win-x64
+            os: windows-latest
+          - rid: win-x86
+            os: windows-latest
+          - rid: osx-x64
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Publish for RID ${{ matrix.rid }}
+        run: dotnet publish -c Release -r ${{ matrix.rid }} --self-contained src/CSharpCompiler/CSharpCompiler.csproj
+
+      - name: Run simple test
+        run: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/publish/CSharpCompiler testSources/AsyncWork.cs
+
+      - name: Run multifile test
+        run: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/publish/CSharpCompiler testSources/MultipleFilesLogger/1.cs testSources/MultipleFilesLogger/2.cs -- print something new
+      
+
+
+  
+
+
+
