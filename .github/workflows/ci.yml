@@ -41,3 +41,39 @@ jobs:
 
       - name: UnitTest
         run: dotnet test src/CSharpCompiler.sln       
+
+  full-cycle-test:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            os: ubuntu-latest
+          - rid: win-x64
+            os: windows-latest
+          - rid: win-x86
+            os: windows-latest
+          - rid: osx-x64
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Publish for RID ${{ matrix.rid }}
+        run: dotnet publish -c Release -r ${{ matrix.rid }} --self-contained src/CSharpCompiler/CSharpCompiler.csproj
+      
+      
+
+
+  
+
+
+
