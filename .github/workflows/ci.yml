@@ -1,0 +1,23 @@
+name: Continious Integration
+           
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  unit-test:
+    needs: build
+    uses: ./.github/workflows/unit-test.yml
+
+  publish:
+    needs: build
+    uses: ./.github/workflows/publish.yml
+
+  full-cycle-test:
+    needs: publish
+    uses: ./.github/workflows/full-cycle-test.yml
+
+  create-release:
+    needs: [ unit-test, full-cycle-test ]
+    uses: ./.github/workflows/create-release.yml

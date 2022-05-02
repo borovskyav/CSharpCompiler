@@ -31,7 +31,7 @@ internal class CSharpSourceCodeRunner
         
         var unexistFiles = GetUnexistFiles(data.FilesPath);
         if(unexistFiles.Count > 0)
-            throw new FileNotFoundException($"One of more files not found: {string.Join(Environment.NewLine, unexistFiles)}");
+            throw new FileNotFoundException($"Some files not found: {string.Join(Environment.NewLine, unexistFiles)}");
         
         var filesSyntaxTree = new FilesSyntaxTree(data.FilesPath);
         
@@ -130,7 +130,8 @@ internal class CSharpSourceCodeRunner
         if(dict.ContainsKey(false))
         {
             stringBuilder.AppendLine();
-            stringBuilder.AppendLine($"From remote:{Environment.NewLine}");
+            stringBuilder.AppendLine($"From remote:{Environment.NewLine}"
+                                     + $"{string.Join(Environment.NewLine, dict[false].Select(x => $"{x.PackageId}: {x.Version}"))}");
         }
         logger.Info(stringBuilder.ToString());
     }

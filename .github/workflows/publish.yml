@@ -1,0 +1,29 @@
+name: Publish
+           
+on: workflow_call
+
+jobs:
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [ linux-x64, win-x64, win-x86, osx-x64 ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Publish for RID ${{ matrix.rid }}
+        run: dotnet publish -c Release -r ${{ matrix.rid }} --self-contained src/CSharpCompiler/CSharpCompiler.csproj
+
+      - name: Upload artifact
+        uses: alehechka/upload-tartifact@v1
+        with:
+          name: CSharpCompiler-${{ matrix.rid }}
+          path: src/CSharpCompiler/bin/Release/net6.0/${{ matrix.rid }}/publish

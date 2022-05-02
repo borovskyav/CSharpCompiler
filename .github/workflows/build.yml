@@ -1,10 +1,11 @@
-name: Build and Test
+name: Build
            
-on: [push]
+on: workflow_call
 
 jobs:
-  Build-And-Test:
+  build:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
@@ -18,12 +19,5 @@ jobs:
         with:
           dotnet-version: '6.0.x'
 
-      - name: Install dependencies
-        run: dotnet restore src/CSharpCompiler.sln
-
       - name: Build
-        run: dotnet build --configuration Release --no-restore src/CSharpCompiler.sln
-
-      - name: Test
-        run: dotnet test --no-restore src/CSharpCompiler.sln          
-
+        run: dotnet build --configuration Release src/CSharpCompiler.sln

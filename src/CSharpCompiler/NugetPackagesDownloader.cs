@@ -68,8 +68,8 @@ internal class NugetPackagesDownloader
             return new DownloadPackageResult(packageId, version, true, package, true);
 
         using var packageStream = new MemoryStream();
-        if(await DownloadPackageAsync(packageIdentity, packageStream, cancellationToken))
-            return new DownloadPackageResult(packageId, version, true, null, false);
+        if(!await DownloadPackageAsync(packageIdentity, packageStream, cancellationToken))
+            return new DownloadPackageResult(packageId, version, false, null, false);
 
         packageStream.Seek(0, SeekOrigin.Begin);
 
@@ -90,7 +90,7 @@ internal class NugetPackagesDownloader
         if(!await resource.DoesPackageExistAsync(packageIdentity.Id, packageIdentity.Version, cache, logger, cancellationToken))
             return false;
 
-        if(await resource.CopyNupkgToStreamAsync(
+        if(!await resource.CopyNupkgToStreamAsync(
                packageIdentity.Id,
                packageIdentity.Version,
                packageStream,

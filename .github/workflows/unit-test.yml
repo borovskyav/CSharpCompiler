@@ -1,0 +1,23 @@
+name: Unit test
+           
+on: workflow_call
+
+jobs:
+  unit-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.x' 
+
+      - name: UnitTest
+        run: dotnet test src/CSharpCompiler.sln
