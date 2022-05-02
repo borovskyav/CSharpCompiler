@@ -1,4 +1,5 @@
 ﻿// Package: Vostok.Logging.Console 1.0.8
+// Package: Moq 4.17.2
 
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;

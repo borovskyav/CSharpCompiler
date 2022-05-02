@@ -130,7 +130,8 @@ internal class CSharpSourceCodeRunner
         if(dict.ContainsKey(false))
         {
             stringBuilder.AppendLine();
-            stringBuilder.AppendLine($"From remote:{Environment.NewLine}");
+            stringBuilder.AppendLine($"From remote:{Environment.NewLine}"
+                                     + $"{string.Join(Environment.NewLine, dict[false].Select(x => $"{x.PackageId}: {x.Version}"))}");
         }
         logger.Info(stringBuilder.ToString());
     }
