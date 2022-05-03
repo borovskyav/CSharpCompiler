@@ -1,4 +1,5 @@
 ﻿// Package: Vostok.Logging.Console 1.0.8
+// Package: Vostok.Logging.Abstractions 1.0.1
 
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;

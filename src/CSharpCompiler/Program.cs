@@ -32,6 +32,7 @@ internal class Program
                 logger,
                 new RoslynSyntaxTreeBuilder(),
                 new RoslynSyntaxTreeCommentExtractor(),
+                new NugetPackagesParser(logger),
                 new NugetClientBasedPackagesDownloader(logger),
                 new NugetPackageLibrariesExtractor.NugetPackageLibrariesExtractor(logger, "net6.0"),
                 new RoslynCSharpCompiler(logger),

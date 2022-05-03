@@ -1,12 +1,20 @@
+using System.Text;
 using System.Text.RegularExpressions;
 
 using NuGet.Versioning;
 
+using Vostok.Logging.Abstractions;
+
 namespace CSharpCompiler.NugetPackagesDownloader;
 
-internal static class NugetPackagesParser
+internal class NugetPackagesParser
 {
-    public static Dictionary<string, NuGetVersion> Parse(IEnumerable<string> strings)
+    public NugetPackagesParser(ILog logger)
+    {
+        this.logger = logger.ForContext<NugetPackagesParser>();
+    }
+
+    public Dictionary<string, NuGetVersion> Parse(IEnumerable<string> strings)
     {
         var list = new List<(string name, NuGetVersion version)>();
         foreach(var str in strings)
@@ -19,10 +27,30 @@ internal static class NugetPackagesParser
                 list.Add((match.Groups["package"].Value, value));
         }
 
-        return list
-               .GroupBy(x => x.name)
-               .ToDictionary(x => x.Key, x => x.MaxBy(t => t.version)!.version);
+        var groupedPackages = list
+                              .GroupBy(x => x.name, x => x.version)
+                              .ToArray();
+        var duplicatePackages = groupedPackages
+                                .Where(x => x.Distinct().Count() > 1)
+                                .ToArray();
+        
+        if(duplicatePackages.Length != 0)
+            LogDuplicatePackagesWarn(duplicatePackages);
+        return groupedPackages.ToDictionary(x => x.Key, x => x.Max()!);
     }
+
+    private void LogDuplicatePackagesWarn(IGrouping<string, NuGetVersion>[] nuGetVersions)
+    {
+        var sb = new StringBuilder("There are duplicate includes of packages with different versions, take max version:");
+        foreach(var nuGetVersion in nuGetVersions)
+        {
+            sb.AppendLine();
+            sb.Append($"\t{string.Join(", ", nuGetVersion)} => {nuGetVersion.Max()}");
+        }
+        logger.Warn(sb.ToString());
+    }
+
+    private readonly ILog logger;
 
     private static readonly Regex includePackageRegex = new("\\s*Package:\\s*(?<package>[\\w\\d.]+)\\s+(?<version>[\\d.-]+[\\w]+)");
 }

@@ -15,6 +15,7 @@ internal class CSharpSourceCodeRunner
         ILog logger,
         ISyntaxTreeBuilder syntaxTreeBuilder,
         ICSharpCommentExtractor cSharpCommentExtractor,
+        NugetPackagesParser nugetPackagesParser,
         INugetPackagesDownloader nugetPackagesDownloader,
         INugetPackageLibrariesExtractor nugetPackageLibrariesExtractor,
         ICSharpCompiler cSharpCompiler,
@@ -27,6 +28,7 @@ internal class CSharpSourceCodeRunner
         this.nugetPackagesDownloader = nugetPackagesDownloader;
         this.cSharpCompiler = cSharpCompiler;
         this.cSharpCommentExtractor = cSharpCommentExtractor;
+        this.nugetPackagesParser = nugetPackagesParser;
         this.logger = logger.ForContext<CSharpSourceCodeRunner>();
     }
 
@@ -55,7 +57,7 @@ internal class CSharpSourceCodeRunner
     private async Task<IReadOnlyList<string>> GetExternalLibrariesAsync(CsharpSyntaxTree tree, string dllDirectory, CancellationToken token)
     {
         var comments = await cSharpCommentExtractor.ExtractAsync(tree, token);
-        var nugetPackages = NugetPackagesParser.Parse(comments);
+        var nugetPackages = nugetPackagesParser.Parse(comments);
         if(nugetPackages.Count == 0)
         {
             logger.Info("No included nuget packages, skip downloading step");
@@ -77,6 +79,7 @@ internal class CSharpSourceCodeRunner
 
     private readonly ISyntaxTreeBuilder syntaxTreeBuilder;
     private readonly ICSharpCommentExtractor cSharpCommentExtractor;
+    private readonly NugetPackagesParser nugetPackagesParser;
     private readonly INugetPackagesDownloader nugetPackagesDownloader;
     private readonly INugetPackageLibrariesExtractor nugetPackageLibrariesExtractor;
     private readonly ICSharpCompiler cSharpCompiler;

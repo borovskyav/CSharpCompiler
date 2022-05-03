@@ -27,7 +27,7 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
             throw new Exception("There is no method \"Main\" in executable dll");
 
         if(mainList.Count > 1)
-            throw new Exception("There is two or more Main methods in executable dll");
+            throw new Exception("There are two or more Main methods in executable dll");
 
         logger.Info("Start external application");
         var result = InvokeMethod(mainList[0].type, mainList[0].methodInfo, arguments);

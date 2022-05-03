@@ -16,6 +16,7 @@ public class LoggerThatCanLog
 
     public void Log(string message, params object[] objects)
     {
+        // Package: Vostok.Logging.Console 1.0.3
         logger.Info(message, objects);
     }
 }
