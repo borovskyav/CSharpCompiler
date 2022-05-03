@@ -37,25 +37,46 @@ internal class CommentExtractorTests<T> where T : ICSharpCommentExtractor, new()
 
     public static object[] multilineTestFixtures =
         {
-            new object[] { "ThrowException.cs", new[] { "/*\r\n    This file just\r\n    throws exception!\r\n*/" } }, new object[]
+            new object[]
+                {
+                    "ThrowException.cs", new[]
+                        {
+                            "/*"
+                            + Environment.NewLine
+                            + "    This file just"
+                            + Environment.NewLine
+                            + "    throws exception!"
+                            + Environment.NewLine
+                            + "*/",
+                        },
+                },
+            new object[]
                 {
                     "MultipleFilesLogger/2.cs", new[]
                         {
-                            "/* \r\n"
-                            + "    Package: Vostok.Logging.Abstractions 1.0.23\r\n"
-                            + "    Package: Vostok.Logging.Formatting 1.0.8\r\n"
+                            "/* "
+                            + Environment.NewLine
+                            + "    Package: Vostok.Logging.Abstractions 1.0.23"
+                            + Environment.NewLine
+                            + "    Package: Vostok.Logging.Formatting 1.0.8"
+                            + Environment.NewLine
                             + "*/",
-                        }
+                        },
                 },
             new object[]
                 {
                     "JetbrainsExampleAsync.cs", new[]
                         {
-                            "// Package: RestSharp 107.3.0", "/*\r\n"
-                                                             + "                This example is same as\r\n"
-                                                             + "                original jetbrains example\r\n"
-                                                             + "                but library was updated\r\n"
-                                                             + "                and async was used\r\n"
+                            "// Package: RestSharp 107.3.0", "/*"
+                                                             + Environment.NewLine
+                                                             + "                This example is same as"
+                                                             + Environment.NewLine
+                                                             + "                original jetbrains example"
+                                                             + Environment.NewLine
+                                                             + "                but library was updated"
+                                                             + Environment.NewLine
+                                                             + "                and async was used"
+                                                             + Environment.NewLine
                                                              + "            */",
                         },
                 },
