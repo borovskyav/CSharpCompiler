@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace CSharpCompiler;
+namespace CSharpCompiler.SyntaxTreeBuilder;
 
 internal class RoslynSyntaxTreeBuilder : ISyntaxTreeBuilder
 {

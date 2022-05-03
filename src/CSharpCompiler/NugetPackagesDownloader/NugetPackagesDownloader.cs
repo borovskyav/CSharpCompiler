@@ -10,7 +10,7 @@ using NuGet.Versioning;
 
 using Vostok.Logging.Abstractions;
 
-namespace CSharpCompiler;
+namespace CSharpCompiler.NugetPackagesDownloader;
 
 internal class NugetPackagesDownloader : INugetPackagesDownloader
 {
@@ -29,7 +29,7 @@ internal class NugetPackagesDownloader : INugetPackagesDownloader
 
     public async Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(Dictionary<string, NuGetVersion> packages, CancellationToken token = default)
     {
-        logger.Info("Found {packagesCount} included in source code, start download");
+        logger.Info("Found {packagesCount} packages included in source code, start download", packages.Count);
 
         var list = packages
             .Select(package => GetFromGlobalCacheOrDownloadPackage(package.Key, package.Value, token));
@@ -109,7 +109,7 @@ internal class NugetPackagesDownloader : INugetPackagesDownloader
     private void LogDownloadResult(IEnumerable<DownloadPackageResult> packages, bool notFound)
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("Download process has been finished:");
+        stringBuilder.Append("Download process has been finished:");
         var grouping = packages
                        .GroupBy(x => (x.Found, x.FromCache))
                        .OrderBy(x => x.Key);
@@ -122,9 +122,13 @@ internal class NugetPackagesDownloader : INugetPackagesDownloader
                     (true, true) => "From cache:",
                     _ => throw new ArgumentOutOfRangeException(),
                 };
-            stringBuilder.AppendLine(result);
+            stringBuilder.AppendLine();
+            stringBuilder.Append(result);
             foreach(var package in group.Select(x => x))
-                stringBuilder.AppendLine($"\t{package.PackageId}: {package.Version}");
+            {
+                stringBuilder.AppendLine();
+                stringBuilder.Append($"\t{package.PackageId}: {package.Version}");
+            }
         }
 
         if(notFound)

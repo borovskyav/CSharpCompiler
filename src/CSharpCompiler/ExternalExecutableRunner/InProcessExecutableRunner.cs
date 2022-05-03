@@ -1,14 +1,16 @@
-using System.Reflection;
+﻿using System.Reflection;
 
-namespace CSharpCompiler;
+using Vostok.Logging.Abstractions;
 
-internal interface IExternalExecutableRunner
-{
-    Task<int> RunAsync(string dllPath, IReadOnlyList<string> arguments);
-}
+namespace CSharpCompiler.ExternalExecutableRunner;
 
 internal class InProcessExecutableRunner : IExternalExecutableRunner
 {
+    public InProcessExecutableRunner(ILog logger)
+    {
+        this.logger = logger.ForContext<InProcessExecutableRunner>();
+    }
+
     public async Task<int> RunAsync(string dllPath, IReadOnlyList<string> arguments)
     {
         var assembly = Assembly.LoadFrom(dllPath);
@@ -27,6 +29,7 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
         if(mainList.Count > 1)
             throw new Exception("There is two or more Main methods in executable dll");
 
+        logger.Info("Start external application");
         var result = InvokeMethod(mainList[0].type, mainList[0].methodInfo, arguments);
         return await HandleResult(result);
     }
@@ -70,4 +73,6 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
             return 0;
         }
     }
+
+    private readonly ILog logger;
 }

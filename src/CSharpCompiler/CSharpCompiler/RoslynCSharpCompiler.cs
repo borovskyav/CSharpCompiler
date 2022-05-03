@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Emit;
 
 using Vostok.Logging.Abstractions;
 
-namespace CSharpCompiler;
+namespace CSharpCompiler.CSharpCompiler;
 
 // todo подумать про настройку дефолтных флагов. Какие ставить? Такие-же как в моем приложении стоят? Какой-то кастом?
 // todo Понять, какие либы подгружать? Такие же как в моем приложении?
@@ -52,7 +52,7 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
     private void LogCompilationResult(EmitResult emitResult, bool compilationError)
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("Compilation has been finished:");
+        stringBuilder.Append("Compilation has been finished");
         var grouping = emitResult
                        .Diagnostics
                        .GroupBy(IsDiagnosticError)
@@ -64,9 +64,13 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
                     true => "Errors:",
                     false => "Warnings:",
                 };
-            stringBuilder.AppendLine(result);
+            stringBuilder.AppendLine();
+            stringBuilder.Append(result);
             foreach(var diagnostic in group.Select(x => x))
-                stringBuilder.AppendLine($"\t{diagnostic}:");
+            {
+                stringBuilder.AppendLine();
+                stringBuilder.Append($"\t{diagnostic}:");
+            }
         }
 
         if(compilationError)

@@ -1,4 +1,6 @@
-﻿namespace CSharpCompiler;
+﻿using CSharpCompiler.NugetPackagesDownloader;
+
+namespace CSharpCompiler.NugetPackageLibrariesExtractor;
 
 internal interface INugetPackageLibrariesExtractor
 {

@@ -1,4 +1,6 @@
-﻿namespace CSharpCompiler;
+﻿using CSharpCompiler.SyntaxTreeBuilder;
+
+namespace CSharpCompiler.CSharpCommentExtractor;
 
 internal class FileBasedCommentExtractor : ICSharpCommentExtractor
 {

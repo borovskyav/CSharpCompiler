@@ -1,3 +1,5 @@
+using CSharpCompiler.NugetPackagesDownloader;
+
 using NuGet.Versioning;
 
 namespace CSharpCompilerTests;

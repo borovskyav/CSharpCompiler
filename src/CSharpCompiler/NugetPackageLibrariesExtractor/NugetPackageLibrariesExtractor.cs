@@ -1,9 +1,11 @@
-﻿using NuGet.Common;
+﻿using CSharpCompiler.NugetPackagesDownloader;
+
+using NuGet.Common;
 using NuGet.Frameworks;
 
 using Vostok.Logging.Abstractions;
 
-namespace CSharpCompiler;
+namespace CSharpCompiler.NugetPackageLibrariesExtractor;
 
 class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
 {

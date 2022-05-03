@@ -1,4 +1,11 @@
-﻿using Vostok.Logging.Console;
+﻿using CSharpCompiler.CSharpCommentExtractor;
+using CSharpCompiler.CSharpCompiler;
+using CSharpCompiler.ExternalExecutableRunner;
+using CSharpCompiler.NugetPackageLibrariesExtractor;
+using CSharpCompiler.NugetPackagesDownloader;
+using CSharpCompiler.SyntaxTreeBuilder;
+
+using Vostok.Logging.Console;
 
 namespace CSharpCompilerTests;
 
@@ -15,7 +22,7 @@ public class FullCycleTests
             new NugetPackagesDownloader(logger),
             new NugetPackageLibrariesExtractor(logger, "net6.0"),
             new RoslynCSharpCompiler(logger),
-            new InProcessExecutableRunner());
+            new InProcessExecutableRunner(logger));
     }
 
     [Test]

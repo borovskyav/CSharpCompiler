@@ -1,4 +1,4 @@
-﻿namespace CSharpCompiler;
+﻿namespace CSharpCompiler.SyntaxTreeBuilder;
 
 internal interface ISyntaxTreeBuilder
 {

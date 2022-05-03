@@ -1,7 +1,7 @@
 ﻿using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
-namespace CSharpCompiler;
+namespace CSharpCompiler.NugetPackagesDownloader;
 
 internal class DownloadPackageResult
 {

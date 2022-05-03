@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace CSharpCompiler;
+namespace CSharpCompiler.CSharpCompiler;
 
 internal interface ICSharpCompiler
 {

@@ -1,7 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using CSharpCompiler.SyntaxTreeBuilder;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace CSharpCompiler;
+namespace CSharpCompiler.CSharpCommentExtractor;
 
 internal class RoslynSyntaxTreeCommentExtractor : ICSharpCommentExtractor
 {

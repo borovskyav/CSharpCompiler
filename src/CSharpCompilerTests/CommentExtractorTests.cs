@@ -1,3 +1,6 @@
+using CSharpCompiler.CSharpCommentExtractor;
+using CSharpCompiler.SyntaxTreeBuilder;
+
 namespace CSharpCompilerTests;
 
 // ReSharper disable once StaticMemberInGenericType

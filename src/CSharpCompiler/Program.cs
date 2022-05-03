@@ -1,5 +1,10 @@
 ﻿using System.Runtime.CompilerServices;
 
+using CSharpCompiler.CSharpCommentExtractor;
+using CSharpCompiler.CSharpCompiler;
+using CSharpCompiler.ExternalExecutableRunner;
+using CSharpCompiler.SyntaxTreeBuilder;
+
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
 using Vostok.Logging.Formatting;
@@ -26,10 +31,10 @@ internal class Program
                 logger,
                 new RoslynSyntaxTreeBuilder(),
                 new RoslynSyntaxTreeCommentExtractor(),
-                new NugetPackagesDownloader(logger),
-                new NugetPackageLibrariesExtractor(logger, "net6.0"),
+                new NugetPackagesDownloader.NugetPackagesDownloader(logger),
+                new NugetPackageLibrariesExtractor.NugetPackageLibrariesExtractor(logger, "net6.0"),
                 new RoslynCSharpCompiler(logger),
-                new InProcessExecutableRunner());
+                new InProcessExecutableRunner(logger));
 
             var parseResult = ConsoleArgumentsParser.Parse(arguments);
             return await codeRunner.RunAsync(parseResult, cancellationToken);
