@@ -56,6 +56,7 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
     {
         if(result == null)
             return 0;
+
         switch(result)
         {
         case Task<int> res:

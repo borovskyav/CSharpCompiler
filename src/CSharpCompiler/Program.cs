@@ -24,8 +24,16 @@ internal class Program
         {
             var stBuilder = new RoslynSyntaxTreeBuilder();
             var commentExtractor = new RoslynSyntaxTreeCommentExtractor();
+            var nugetPackagesDownloader = new NugetPackagesDownloader(logger);
             var runner = new InProcessExecutableRunner();
-            var codeRunner = new CSharpSourceCodeRunner(logger, stBuilder, commentExtractor, runner);
+            var libExtractor = new NugetPackageLibrariesExtractor(logger, "net6.0");
+            var codeRunner = new CSharpSourceCodeRunner(
+                logger,
+                stBuilder,
+                commentExtractor,
+                nugetPackagesDownloader,
+                libExtractor,
+                runner);
 
             var parseResult = ConsoleArgumentsParser.Parse(arguments);
             return await codeRunner.RunAsync(parseResult, cancellationToken);

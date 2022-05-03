@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Reflection;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -28,8 +29,8 @@ public class CompilationResult
     }
 
     public bool Success { get; }
-    public IReadOnlyList<Diagnostic> Errors { get; } //todo избавиться от Diagnostic
-    public IReadOnlyList<Diagnostic> Warnings { get; } //todo избавиться от Diagnostic
+    public IReadOnlyList<Diagnostic> Errors { get; }
+    public IReadOnlyList<Diagnostic> Warnings { get; }
     public string DllPath { get; }
 
     public override string ToString()
@@ -72,6 +73,10 @@ public class RoslynGames
             defaultReferences.Concat(externalLibs.Select(x => MetadataReference.CreateFromFile(x))),
             defaultCompilationOptions);
 
+        
+        foreach(var packagesFile in externalLibs)
+            Assembly.LoadFrom(packagesFile);
+        
         var dllPath = Path.Combine(workingDirectory, dllName);
         var result = compilation.Emit(dllPath);
         if(!result.Success)

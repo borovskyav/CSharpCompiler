@@ -1,4 +1,6 @@
-﻿using NuGet.Common;
+﻿using System.Text;
+
+using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Packaging.Core;
 using NuGet.Packaging.Signing;
@@ -6,38 +8,16 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
+using Vostok.Logging.Abstractions;
+
 namespace CSharpCompiler;
 
-internal class DownloadPackageResult
+internal class NugetPackagesDownloader : INugetPackagesDownloader
 {
-    public DownloadPackageResult(
-        string packageId,
-        NuGetVersion version,
-        bool found,
-        DownloadResourceResult? nugetResult,
-        bool fromCache
-    )
+    public NugetPackagesDownloader(ILog logger)
     {
-        PackageId = packageId;
-        Version = version;
-        NugetResult = nugetResult;
-        Found = found;
-        FromCache = fromCache;
-    }
-
-    public string PackageId { get; }
-    public NuGetVersion Version { get; }
-    public bool Found { get; }
-
-    public DownloadResourceResult? NugetResult { get; }
-    public bool FromCache { get; }
-}
-
-internal class NugetPackagesDownloader
-{
-    public NugetPackagesDownloader()
-    {
-        logger = NullLogger.Instance;
+        this.logger = logger.ForContext<NugetPackagesDownloader>();
+        nugetClientLogger = NullLogger.Instance;
         settings = Settings.LoadDefaultSettings(null);
         globalPackagesFolder = SettingsUtility.GetGlobalPackagesFolder(settings);
 
@@ -45,21 +25,25 @@ internal class NugetPackagesDownloader
         repository = Repository.Factory.GetCoreV3(globalSource);
     }
 
-    // todo any other sources?
     private const string globalSource = "https://api.nuget.org/v3/index.json";
 
-    public async Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(Dictionary<string, NuGetVersion> packages, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(Dictionary<string, NuGetVersion> packages, CancellationToken token = default)
     {
-        // todo CancellationToken handling when one of packages not found
-        // todo Dependencies downloading
-        var list = packages.Select(package => GetFromGlobalCacheOrDownloadPackage(package.Key, package.Value, cancellationToken));
-        return await Task.WhenAll(list);
+        logger.Info("Found {packagesCount} included in source code, start download");
+        
+        var list = packages
+            .Select(package => GetFromGlobalCacheOrDownloadPackage(package.Key, package.Value, token));
+        var resultPackages = await Task.WhenAll(list);
+        LogDownloadResult(resultPackages);
+        if(resultPackages.Any(x => !x.Found))
+            throw new Exception("Some packages not found, see log");
+        return resultPackages;
     }
 
     private async Task<DownloadPackageResult> GetFromGlobalCacheOrDownloadPackage(
         string packageId,
         NuGetVersion version,
-        CancellationToken cancellationToken = default
+        CancellationToken token
     )
     {
         var packageIdentity = new PackageIdentity(packageId, version);
@@ -68,28 +52,26 @@ internal class NugetPackagesDownloader
             return new DownloadPackageResult(packageId, version, true, package, true);
 
         using var packageStream = new MemoryStream();
-        if(!await DownloadPackageAsync(packageIdentity, packageStream, cancellationToken))
+        if(!await DownloadPackageAsync(packageIdentity, packageStream, token))
             return new DownloadPackageResult(packageId, version, false, null, false);
 
         packageStream.Seek(0, SeekOrigin.Begin);
 
-        package = await AddToGlobalCache(packageIdentity, packageStream, cancellationToken);
+        package = await AddToGlobalCache(packageIdentity, packageStream, token);
         return new DownloadPackageResult(packageId, version, true, package, false);
     }
 
     private DownloadResourceResult? GetFromCache(PackageIdentity packageIdentity)
-    {
-        return GlobalPackagesFolderUtility.GetPackage(packageIdentity, globalPackagesFolder);
-    }
+        => GlobalPackagesFolderUtility.GetPackage(packageIdentity, globalPackagesFolder);
 
     private async Task<bool> DownloadPackageAsync(
         PackageIdentity packageIdentity,
         Stream packageStream,
-        CancellationToken cancellationToken = default
+        CancellationToken token
     )
     {
-        var resource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
-        if(!await resource.DoesPackageExistAsync(packageIdentity.Id, packageIdentity.Version, cache, logger, cancellationToken))
+        var resource = await repository.GetResourceAsync<FindPackageByIdResource>(token);
+        if(!await resource.DoesPackageExistAsync(packageIdentity.Id, packageIdentity.Version, cache, nugetClientLogger, token))
             return false;
 
         if(!await resource.CopyNupkgToStreamAsync(
@@ -97,8 +79,8 @@ internal class NugetPackagesDownloader
                 packageIdentity.Version,
                 packageStream,
                 cache,
-                logger,
-                cancellationToken
+                nugetClientLogger,
+                token
             ))
             throw new Exception("Error when downloading package from remote source"); // todo text
         return true;
@@ -107,7 +89,7 @@ internal class NugetPackagesDownloader
     private Task<DownloadResourceResult> AddToGlobalCache(
         PackageIdentity packageIdentity,
         Stream packageStream,
-        CancellationToken cancellationToken = default
+        CancellationToken token
     )
     {
         return GlobalPackagesFolderUtility.AddPackageAsync(
@@ -116,13 +98,39 @@ internal class NugetPackagesDownloader
             packageStream,
             globalPackagesFolder,
             Guid.Empty,
-            ClientPolicyContext.GetClientPolicy(settings, logger),
-            logger,
-            cancellationToken
+            ClientPolicyContext.GetClientPolicy(settings, nugetClientLogger),
+            nugetClientLogger,
+            token
         );
     }
 
-    private readonly ILogger logger;
+    private void LogDownloadResult(IEnumerable<DownloadPackageResult> packages)
+    {
+        var stringBuilder = new StringBuilder();
+        stringBuilder.AppendLine("Download process has been finished:");
+        var grouping = packages
+                       .GroupBy(x => (x.Found, x.FromCache))
+                       .OrderBy(x => x.Key);
+        foreach(var group in grouping)
+        {
+            var result = (group.Key.Found, group.Key.FromCache) switch
+                {
+                    (false, false) => "Not found packages:",
+                    (true, false) => "Downloaded from remote:",
+                    (true, true) => "From cache:",
+                    _ => throw new ArgumentOutOfRangeException(),
+                };
+            stringBuilder.AppendLine(result);
+            foreach(var package in group.Select(x => x))
+                stringBuilder.AppendLine($"\t{package.PackageId}: {package.Version}");
+        }
+
+        logger.Info(stringBuilder.ToString());
+    }
+
+    private readonly ILog logger;
+
+    private readonly ILogger nugetClientLogger;
     private readonly string globalPackagesFolder;
     private readonly SourceRepository repository;
     private readonly SourceCacheContext cache;

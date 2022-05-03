@@ -22,18 +22,21 @@ Write and package a C# program which does the following:
   - [x] Linux x86 (.tag.gz)
   - [ ] MacOS ARM (.tar.gz) - со звездочкой, если будет время
 - [ ] Рефакторинг
-  - [ ] Декомпозиция
-  - [ ] packages extractor
-    - [ ] Научиться обрабатывать /* */
-  - [ ] nuget downloader
-    - [ ] Кастомные nuget-source
+  - [x] Декомпозиция
+  - [x] packages extractor
+    - [x] Научиться обрабатывать /* */
     - [ ] Обрабать ситуацию с дублирующимися библиотеками
-    - [ ] Транзитивные зависимости nuget-пакетов
-  - [ ] roslyn compiler
+  - [x] NuGet downloader
+    - [ ] Кастомные NuGet-source
+    - [ ] Транзитивные зависимости NuGet-пакетов
+  - [x] DLL-extractor
+    - [ ] Тесты
+    - [ ] Выбирать наиболее подходящую версию пакета
+  - [ ] Roslyn compiler
     - [ ] unsafe флаг
-  - [ ] dll runner
+  - [ ] DLL Runner
     - [ ] InProcess or OutOfProcess
-- [ ] Проверить что скомпилированная dll работает
+- [ ] Проверить что скомпилированная DLL работает
   - [ ] Собрать все файлы в одной папке
   - [ ] Генерация runtimeconfig.json
 - [ ] Additional requirements

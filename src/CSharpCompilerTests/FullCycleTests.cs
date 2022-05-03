@@ -9,8 +9,16 @@ public class FullCycleTests
     {
         var stBuilder = new RoslynSyntaxTreeBuilder();
         var commentExtractor = new RoslynSyntaxTreeCommentExtractor();
+        var nugetPackagesDownloader = new NugetPackagesDownloader(new ConsoleLog());
+        var libExtractor = new NugetPackageLibrariesExtractor(new ConsoleLog(), "net6.0");
         var runner = new InProcessExecutableRunner();
-        codeRunner = new CSharpSourceCodeRunner(new ConsoleLog(), stBuilder, commentExtractor, runner);
+        codeRunner = new CSharpSourceCodeRunner(
+            new ConsoleLog(),
+            stBuilder,
+            commentExtractor,
+            nugetPackagesDownloader,
+            libExtractor,
+            runner);
     }
 
     [Test]
