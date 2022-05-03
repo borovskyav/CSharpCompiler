@@ -3,6 +3,7 @@
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
+using CSharpCompiler.NugetPackagesDownloader;
 using CSharpCompiler.SyntaxTreeBuilder;
 
 using Vostok.Logging.Abstractions;
@@ -31,7 +32,7 @@ internal class Program
                 logger,
                 new RoslynSyntaxTreeBuilder(),
                 new RoslynSyntaxTreeCommentExtractor(),
-                new NugetPackagesDownloader.NugetPackagesDownloader(logger),
+                new NugetClientBasedPackagesDownloader(logger),
                 new NugetPackageLibrariesExtractor.NugetPackageLibrariesExtractor(logger, "net6.0"),
                 new RoslynCSharpCompiler(logger),
                 new InProcessExecutableRunner(logger));

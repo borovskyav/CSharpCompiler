@@ -12,11 +12,11 @@ using Vostok.Logging.Abstractions;
 
 namespace CSharpCompiler.NugetPackagesDownloader;
 
-internal class NugetPackagesDownloader : INugetPackagesDownloader
+internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
 {
-    public NugetPackagesDownloader(ILog logger)
+    public NugetClientBasedPackagesDownloader(ILog logger)
     {
-        this.logger = logger.ForContext<NugetPackagesDownloader>();
+        this.logger = logger.ForContext<NugetClientBasedPackagesDownloader>();
         nugetClientLogger = NullLogger.Instance;
         settings = Settings.LoadDefaultSettings(null);
         globalPackagesFolder = SettingsUtility.GetGlobalPackagesFolder(settings);

@@ -19,7 +19,7 @@ public class FullCycleTests
             logger,
             new RoslynSyntaxTreeBuilder(),
             new RoslynSyntaxTreeCommentExtractor(),
-            new NugetPackagesDownloader(logger),
+            new NugetClientBasedPackagesDownloader(logger),
             new NugetPackageLibrariesExtractor(logger, "net6.0"),
             new RoslynCSharpCompiler(logger),
             new InProcessExecutableRunner(logger));
