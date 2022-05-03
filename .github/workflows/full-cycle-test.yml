@@ -1,4 +1,4 @@
-name: Full cycly test
+name: Full cycle test
            
 on: workflow_call
 
