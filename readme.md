@@ -23,17 +23,22 @@ Write and package a C# program which does the following:
   - [ ] MacOS ARM (.tar.gz) - со звездочкой, если будет время
 - [ ] Рефакторинг
   - [x] Декомпозиция
-  - [x] packages extractor
+  - [ ] packages extractor
+    - [x] Рефакторинг
     - [x] Научиться обрабатывать /* */
     - [ ] Обрабать ситуацию с дублирующимися библиотеками
-  - [x] NuGet downloader
+  - [ ] NuGet downloader
+    - [x] Рефакторинг
     - [ ] Кастомные NuGet-source
     - [ ] Транзитивные зависимости NuGet-пакетов
   - [x] DLL-extractor
+    - [x] Рефакторинг
     - [ ] Тесты
     - [ ] Выбирать наиболее подходящую версию пакета
   - [ ] Roslyn compiler
-    - [ ] unsafe флаг
+    - [x] Рефакторинг
+    - [ ] Unsafe флаг
+    - [ ] Подключить правильные референсы
   - [ ] DLL Runner
     - [ ] InProcess or OutOfProcess
 - [ ] Проверить что скомпилированная DLL работает
@@ -44,5 +49,5 @@ Write and package a C# program which does the following:
   - [ ] Compilation result should be cached between runs at a system-specific proper location following
     operating system conventions for that
   - [ ] Many instances of the program may be running in parallel
-- [ ] Прокинуть CancellationToken везде, где я забыл это сделать
-- [ ] Сделать красивые сообщения логгирования
+- [x] Прокинуть CancellationToken везде, где я забыл это сделать
+- [x] Сделать красивые сообщения логгирования

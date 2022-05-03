@@ -4,12 +4,12 @@ namespace CSharpCompiler;
 
 internal interface IExternalExecutableRunner
 {
-    Task<int> Run(string dllPath, IReadOnlyList<string> arguments);
+    Task<int> RunAsync(string dllPath, IReadOnlyList<string> arguments);
 }
 
 internal class InProcessExecutableRunner : IExternalExecutableRunner
 {
-    public async Task<int> Run(string dllPath, IReadOnlyList<string> arguments)
+    public async Task<int> RunAsync(string dllPath, IReadOnlyList<string> arguments)
     {
         var assembly = Assembly.LoadFrom(dllPath);
 
@@ -22,10 +22,10 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
         }
 
         if(mainList.Count == 0)
-            throw new Exception("0"); //todo text
+            throw new Exception("There is no method \"Main\" in executable dll");
 
         if(mainList.Count > 1)
-            throw new Exception(">1"); //todo text
+            throw new Exception("There is two or more Main methods in executable dll");
 
         var result = InvokeMethod(mainList[0].type, mainList[0].methodInfo, arguments);
         return await HandleResult(result);

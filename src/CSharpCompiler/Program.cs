@@ -22,18 +22,14 @@ internal class Program
         var cancellationToken = ConfigureGracefulStop();
         try
         {
-            var stBuilder = new RoslynSyntaxTreeBuilder();
-            var commentExtractor = new RoslynSyntaxTreeCommentExtractor();
-            var nugetPackagesDownloader = new NugetPackagesDownloader(logger);
-            var runner = new InProcessExecutableRunner();
-            var libExtractor = new NugetPackageLibrariesExtractor(logger, "net6.0");
             var codeRunner = new CSharpSourceCodeRunner(
                 logger,
-                stBuilder,
-                commentExtractor,
-                nugetPackagesDownloader,
-                libExtractor,
-                runner);
+                new RoslynSyntaxTreeBuilder(),
+                new RoslynSyntaxTreeCommentExtractor(),
+                new NugetPackagesDownloader(logger),
+                new NugetPackageLibrariesExtractor(logger, "net6.0"),
+                new RoslynCSharpCompiler(logger),
+                new InProcessExecutableRunner());
 
             var parseResult = ConsoleArgumentsParser.Parse(arguments);
             return await codeRunner.RunAsync(parseResult, cancellationToken);

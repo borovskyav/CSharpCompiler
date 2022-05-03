@@ -30,13 +30,15 @@ internal class NugetPackagesDownloader : INugetPackagesDownloader
     public async Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(Dictionary<string, NuGetVersion> packages, CancellationToken token = default)
     {
         logger.Info("Found {packagesCount} included in source code, start download");
-        
+
         var list = packages
             .Select(package => GetFromGlobalCacheOrDownloadPackage(package.Key, package.Value, token));
         var resultPackages = await Task.WhenAll(list);
-        LogDownloadResult(resultPackages);
-        if(resultPackages.Any(x => !x.Found))
-            throw new Exception("Some packages not found, see log");
+
+        var notFound = resultPackages.Any(x => !x.Found);
+        LogDownloadResult(resultPackages, notFound);
+        if(notFound)
+            throw new Exception("Some packages not found");
         return resultPackages;
     }
 
@@ -82,7 +84,7 @@ internal class NugetPackagesDownloader : INugetPackagesDownloader
                 nugetClientLogger,
                 token
             ))
-            throw new Exception("Error when downloading package from remote source"); // todo text
+            throw new Exception("Error when downloading package from remote source");
         return true;
     }
 
@@ -104,7 +106,7 @@ internal class NugetPackagesDownloader : INugetPackagesDownloader
         );
     }
 
-    private void LogDownloadResult(IEnumerable<DownloadPackageResult> packages)
+    private void LogDownloadResult(IEnumerable<DownloadPackageResult> packages, bool notFound)
     {
         var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("Download process has been finished:");
@@ -125,7 +127,10 @@ internal class NugetPackagesDownloader : INugetPackagesDownloader
                 stringBuilder.AppendLine($"\t{package.PackageId}: {package.Version}");
         }
 
-        logger.Info(stringBuilder.ToString());
+        if(notFound)
+            logger.Error(stringBuilder.ToString());
+        else
+            logger.Info(stringBuilder.ToString());
     }
 
     private readonly ILog logger;

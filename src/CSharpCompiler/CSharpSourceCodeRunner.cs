@@ -1,9 +1,4 @@
-﻿using System.Reflection;
-
-using NuGet.Common;
-using NuGet.Frameworks;
-
-using Vostok.Logging.Abstractions;
+﻿using Vostok.Logging.Abstractions;
 
 namespace CSharpCompiler;
 
@@ -15,6 +10,7 @@ internal class CSharpSourceCodeRunner
         ICSharpCommentExtractor cSharpCommentExtractor,
         INugetPackagesDownloader nugetPackagesDownloader,
         INugetPackageLibrariesExtractor nugetPackageLibrariesExtractor,
+        ICSharpCompiler cSharpCompiler,
         IExternalExecutableRunner externalExecutableRunner
     )
     {
@@ -22,13 +18,14 @@ internal class CSharpSourceCodeRunner
         this.externalExecutableRunner = externalExecutableRunner;
         this.nugetPackageLibrariesExtractor = nugetPackageLibrariesExtractor;
         this.nugetPackagesDownloader = nugetPackagesDownloader;
+        this.cSharpCompiler = cSharpCompiler;
         this.cSharpCommentExtractor = cSharpCommentExtractor;
         this.logger = logger.ForContext<CSharpSourceCodeRunner>();
     }
 
     public async Task<int> RunAsync(
         CSharpSourceCodeRunnerData data,
-        CancellationToken cancellationToken = default
+        CancellationToken token = default
     )
     {
         if(data.FilesPath.Count == 0)
@@ -38,19 +35,14 @@ internal class CSharpSourceCodeRunner
         if(unexistFiles.Count > 0)
             throw new FileNotFoundException($"Some files not found: {string.Join(Environment.NewLine, unexistFiles)}");
 
-        var syntaxTree = await syntaxTreeBuilder.BuildAsync(data.FilesPath, cancellationToken);
+        var syntaxTree = await syntaxTreeBuilder.BuildAsync(data.FilesPath, token);
 
         var dllDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Guid.NewGuid().ToString());
         Directory.CreateDirectory(dllDirectory);
 
-        var packagesFiles = await GetExternalLibrariesAsync(syntaxTree, dllDirectory, cancellationToken);
-        
-        var compilationResult = RoslynGames.Compile(dllDirectory, syntaxTree.Trees, packagesFiles);
-        if(!compilationResult.Success)
-            throw new Exception(compilationResult.ToString());
-        logger.Info(compilationResult.ToString());
-
-        return await externalExecutableRunner.Run(compilationResult.DllPath, data.Arguments);
+        var externalLibs = await GetExternalLibrariesAsync(syntaxTree, dllDirectory, token);
+        var dllPath = cSharpCompiler.Compile(syntaxTree.Trees, externalLibs, dllDirectory, token);
+        return await externalExecutableRunner.RunAsync(dllPath, data.Arguments);
     }
 
     private async Task<IReadOnlyList<string>> GetExternalLibrariesAsync(CsharpSyntaxTree tree, string dllDirectory, CancellationToken token)
@@ -62,7 +54,7 @@ internal class CSharpSourceCodeRunner
             logger.Info("No included nuget packages, skip downloading step");
             return Array.Empty<string>();
         }
-        
+
         var packages = await nugetPackagesDownloader.DownloadAsync(nugetPackages, token);
         var libraryFilesPath = await nugetPackageLibrariesExtractor.ExtractAsync(packages, dllDirectory, token);
         return libraryFilesPath.Where(x => Path.GetExtension(x) == ".dll").ToArray();
@@ -80,6 +72,7 @@ internal class CSharpSourceCodeRunner
     private readonly ICSharpCommentExtractor cSharpCommentExtractor;
     private readonly INugetPackagesDownloader nugetPackagesDownloader;
     private readonly INugetPackageLibrariesExtractor nugetPackageLibrariesExtractor;
+    private readonly ICSharpCompiler cSharpCompiler;
     private readonly IExternalExecutableRunner externalExecutableRunner;
     private readonly ILog logger;
 }

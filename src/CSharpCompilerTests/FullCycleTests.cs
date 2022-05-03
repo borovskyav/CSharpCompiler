@@ -7,18 +7,15 @@ public class FullCycleTests
     [SetUp]
     public void SetUp()
     {
-        var stBuilder = new RoslynSyntaxTreeBuilder();
-        var commentExtractor = new RoslynSyntaxTreeCommentExtractor();
-        var nugetPackagesDownloader = new NugetPackagesDownloader(new ConsoleLog());
-        var libExtractor = new NugetPackageLibrariesExtractor(new ConsoleLog(), "net6.0");
-        var runner = new InProcessExecutableRunner();
+        var logger = new ConsoleLog();
         codeRunner = new CSharpSourceCodeRunner(
-            new ConsoleLog(),
-            stBuilder,
-            commentExtractor,
-            nugetPackagesDownloader,
-            libExtractor,
-            runner);
+            logger,
+            new RoslynSyntaxTreeBuilder(),
+            new RoslynSyntaxTreeCommentExtractor(),
+            new NugetPackagesDownloader(logger),
+            new NugetPackageLibrariesExtractor(logger, "net6.0"),
+            new RoslynCSharpCompiler(logger),
+            new InProcessExecutableRunner());
     }
 
     [Test]
