@@ -48,8 +48,8 @@ internal class CSharpSourceCodeRunner
         Directory.CreateDirectory(dllDirectory);
 
         var externalLibs = await GetExternalLibrariesAsync(syntaxTree, dllDirectory, token);
-        var dllPath = cSharpCompiler.Compile(syntaxTree.Trees, externalLibs, dllDirectory, token);
-        return await externalExecutableRunner.RunAsync(dllPath, data.Arguments);
+        var dllPath = cSharpCompiler.Compile(syntaxTree.Trees, externalLibs, dllDirectory, data.AllowUnsafe, token);
+        return await externalExecutableRunner.RunAsync(dllPath, data.ProcessArguments);
     }
 
     private async Task<IReadOnlyList<string>> GetExternalLibrariesAsync(CsharpSyntaxTree tree, string dllDirectory, CancellationToken token)

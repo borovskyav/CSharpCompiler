@@ -4,13 +4,18 @@ internal class CSharpSourceCodeRunnerData
 {
     public CSharpSourceCodeRunnerData(
         IReadOnlyList<string> filesPath,
-        IReadOnlyList<string> arguments
+        IReadOnlyList<string> processArguments,
+        bool allowUnsafe
     )
     {
         FilesPath = filesPath;
-        Arguments = arguments;
+        ProcessArguments = processArguments;
+        AllowUnsafe = allowUnsafe;
     }
 
     public IReadOnlyList<string> FilesPath { get; }
-    public IReadOnlyList<string> Arguments { get; }
+    public IReadOnlyList<string> ProcessArguments { get; }
+
+    public bool AllowUnsafe { get; set; }
+
 }

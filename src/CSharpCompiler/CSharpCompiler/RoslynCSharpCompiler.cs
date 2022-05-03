@@ -22,11 +22,15 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
         IReadOnlyList<SyntaxTree> trees,
         IReadOnlyList<string> externalLibs,
         string workingDirectory,
+        bool allowUnsafe,
         CancellationToken token = default
     )
     {
         var dllName = $"{Guid.NewGuid()}.dll";
 
+        if(allowUnsafe)
+            defaultCompilationOptions.WithAllowUnsafe(true);
+        
         var compilation = CSharpCompilation.Create(
             dllName,
             trees,
@@ -99,7 +103,6 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
         new CSharpCompilationOptions(OutputKind.ConsoleApplication)
             .WithOverflowChecks(true)
             .WithOptimizationLevel(OptimizationLevel.Release)
-            .WithAllowUnsafe(true)
             .WithUsings(defaultNamespaces);
 
     private static readonly IEnumerable<string> defaultNamespaces =
