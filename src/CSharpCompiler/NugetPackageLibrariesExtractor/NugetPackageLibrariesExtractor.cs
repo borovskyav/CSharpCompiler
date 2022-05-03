@@ -36,14 +36,13 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
     )
     {
         var nugetResult = package.NugetResult!;
-        var compatibleFramework = await GetCompatibleNugetFramework(package, token);
-        logger.Debug("Use Framework {packageFramework} for Package: {packageId}", compatibleFramework, package.PackageId);
 
-        var targetFrameworkFiles = (await nugetResult.PackageReader.GetLibItemsAsync(token))
-            .First(x => x.TargetFramework == compatibleFramework);
+        var targetFrameworkFiles = GetNearest(await nugetResult.PackageReader.GetLibItemsAsync(token), frameworkVersion);
 
         if(targetFrameworkFiles == null)
             throw new Exception("Nuget package {packageId} supports {compatibleFramework}, but folder not found");
+        
+        logger.Debug("Use Framework {packageFramework} for Package {packageId}", targetFrameworkFiles.TargetFramework, package.PackageId);
 
         return await nugetResult.PackageReader.CopyFilesAsync(
                    extractDirectory,
@@ -60,21 +59,9 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
         sourceStream.CopyTo(targetStream);
         return targetPath;
     }
-
-    private async Task<NuGetFramework> GetCompatibleNugetFramework(DownloadPackageResult package, CancellationToken token)
-    {
-        var supportedFrameworks = (await package
-                                         .NugetResult!
-                                         .PackageReader
-                                         .GetSupportedFrameworksAsync(token))
-            .ToArray();
-        var provider = DefaultCompatibilityProvider.Instance;
-        var compatibleFramework = supportedFrameworks.FirstOrDefault(x => provider.IsCompatible(frameworkVersion, x));
-        if(compatibleFramework == null)
-            throw new Exception($"Compatible framework for package {package.PackageId} not found. Available frameworks: {string.Join(", ", supportedFrameworks.Select(x => x))}");
-
-        return compatibleFramework;
-    }
+    
+    private static T GetNearest<T>(IEnumerable<T> items, NuGetFramework projectFramework) where T : class, IFrameworkSpecific
+        => NuGetFrameworkUtility.GetNearest(items, projectFramework, e => e.TargetFramework);
 
     private readonly ILog logger;
     private readonly NuGetFramework frameworkVersion;

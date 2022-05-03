@@ -34,7 +34,7 @@ Write and package a C# program which does the following:
   - [x] DLL Extractor
     - [x] Рефакторинг
     - [ ] Тесты
-    - [ ] Выбирать наиболее подходящую версию пакета
+    - [x] Выбирать наиболее подходящую версию пакета
   - [ ] Roslyn Compiler
     - [x] Рефакторинг
     - [x] Unsafe флаг
