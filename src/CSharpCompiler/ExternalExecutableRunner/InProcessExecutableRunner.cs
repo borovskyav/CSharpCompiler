@@ -47,7 +47,7 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
     {
         try
         {
-            return methodInfo.Invoke(type, new object?[] { arguments });
+            return methodInfo.Invoke(type, new object?[] { arguments.ToArray() });
         }
         catch(TargetInvocationException exception) when(exception.InnerException != null)
         {
