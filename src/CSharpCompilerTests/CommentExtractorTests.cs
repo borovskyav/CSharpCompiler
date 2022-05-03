@@ -57,6 +57,7 @@ internal class CommentExtractorTests<T> where T : ICSharpCommentExtractor, new()
                 {
                     "MultipleFilesLogger/2.cs", new[]
                         {
+                            "// Package: Vostok.Logging.Console 1.0.3",
                             "/* "
                             + Environment.NewLine
                             + "    Package: Vostok.Logging.Abstractions 1.0.23"
@@ -93,7 +94,12 @@ internal class CommentExtractorTests<T> where T : ICSharpCommentExtractor, new()
                     "MultipleDependencies.cs",
                     new[] { "// Package: Vostok.Logging.Abstractions 1.0.23", "// Package: Vostok.Logging.Formatting 1.0.8", "// Package: Vostok.Logging.Console 1.0.8" },
                 },
-            new object[] { "MultipleFilesLogger/1.cs", new[] { "// Package: Vostok.Logging.Console 1.0.8", "// Package: Moq 4.17.2" } },
+            new object[] { "MultipleFilesLogger/1.cs", new[]
+                {
+                    "// Package: Vostok.Logging.Console 1.0.8",
+                    "// Package: Moq 4.17.2",
+                    "// Package: Vostok.Logging.Abstractions 1.0.1",
+                } },
             new object[] { "SimpleConsoleWriteLine.cs", new[] { "// cw", "// Another WriteLine" } },
         };
 }

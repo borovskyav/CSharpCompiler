@@ -4,23 +4,38 @@ internal static class ConsoleArgumentsParser
 {
     public static CSharpSourceCodeRunnerData Parse(string[] arguments)
     {
+        var compilerArgumentsHash = new HashSet<string>();
         var filesList = new List<string>();
-        var hashSet = new HashSet<string>();
-        
-        var index = 0;
-        for(; index < arguments.Length && arguments[index].StartsWith(argumentsSuffix); index++)
-            hashSet.Add(arguments[index]);
-        
-        for(; index < arguments.Length && arguments[index] != delimiter; index++)
-            filesList.Add(arguments[index]);
+        var programArgumentsList = new List<string>();
 
-        var processArguments = index >= arguments.Length - 1 || arguments.Length == 0
-                                   ? Array.Empty<string>()
-                                   : arguments[(index + 1)..];
+        var filesMeet = false;
+        var delimiterMeet = false;
+        
+        foreach(var argument in arguments)
+        {
+            if(!filesMeet && argument.StartsWith(argumentsSuffix) && argument != delimiter)
+            {
+                compilerArgumentsHash.Add(argument);
+                continue;
+            }
+
+            filesMeet = true;
+            if(!delimiterMeet)
+            {
+                if(argument != delimiter)
+                    filesList.Add(argument);
+                else
+                    delimiterMeet = true;
+                continue;
+            }
+
+            programArgumentsList.Add(argument);
+        }
+
         return new CSharpSourceCodeRunnerData(
             filesList,
-            processArguments,
-            hashSet.Contains(allowUnsafeArgumentName)
+            programArgumentsList,
+            compilerArgumentsHash.Contains(allowUnsafeArgumentName)
         );
     }
 
