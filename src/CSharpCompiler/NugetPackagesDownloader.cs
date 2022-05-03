@@ -78,7 +78,9 @@ internal class NugetPackagesDownloader
     }
 
     private DownloadResourceResult? GetFromCache(PackageIdentity packageIdentity)
-        => GlobalPackagesFolderUtility.GetPackage(packageIdentity, globalPackagesFolder);
+    {
+        return GlobalPackagesFolderUtility.GetPackage(packageIdentity, globalPackagesFolder);
+    }
 
     private async Task<bool> DownloadPackageAsync(
         PackageIdentity packageIdentity,
@@ -91,13 +93,13 @@ internal class NugetPackagesDownloader
             return false;
 
         if(!await resource.CopyNupkgToStreamAsync(
-               packageIdentity.Id,
-               packageIdentity.Version,
-               packageStream,
-               cache,
-               logger,
-               cancellationToken
-           ))
+                packageIdentity.Id,
+                packageIdentity.Version,
+                packageStream,
+                cache,
+                logger,
+                cancellationToken
+            ))
             throw new Exception("Error when downloading package from remote source"); // todo text
         return true;
     }
@@ -113,7 +115,7 @@ internal class NugetPackagesDownloader
             packageIdentity,
             packageStream,
             globalPackagesFolder,
-            parentId: Guid.Empty,
+            Guid.Empty,
             ClientPolicyContext.GetClientPolicy(settings, logger),
             logger,
             cancellationToken

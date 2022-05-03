@@ -10,57 +10,62 @@ namespace CSharpCompiler;
 
 internal class CSharpSourceCodeRunner
 {
-    private readonly IExternalLibraryRunner externalLibraryRunner;
-    private readonly ILog logger;
-
     public CSharpSourceCodeRunner(
         ILog logger,
-        IExternalLibraryRunner externalLibraryRunner)
+        ISyntaxTreeBuilder syntaxTreeBuilder,
+        ICSharpCommentExtractor cSharpCommentExtractor,
+        IExternalExecutableRunner externalExecutableRunner
+    )
     {
-        this.externalLibraryRunner = externalLibraryRunner;
+        this.syntaxTreeBuilder = syntaxTreeBuilder;
+        this.externalExecutableRunner = externalExecutableRunner;
+        this.cSharpCommentExtractor = cSharpCommentExtractor;
         this.logger = logger.ForContext<CSharpSourceCodeRunner>();
     }
-    
+
     public async Task<int> RunAsync(
         CSharpSourceCodeRunnerData data,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         // todo прибраться в выводах файлов на консоль
         if(data.FilesPath.Count == 0)
-            throw new ArgumentException("data.FilesPath.Count == 0"); //todo text
-        
+            throw new ArgumentException("There are no files to compile");
+
         var unexistFiles = GetUnexistFiles(data.FilesPath);
         if(unexistFiles.Count > 0)
             throw new FileNotFoundException($"Some files not found: {string.Join(Environment.NewLine, unexistFiles)}");
-        
-        var filesSyntaxTree = new FilesSyntaxTree(data.FilesPath);
-        
+
+        var syntaxTree = await syntaxTreeBuilder.BuildAsync(data.FilesPath, cancellationToken);
+
         var dllDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Guid.NewGuid().ToString());
         Directory.CreateDirectory(dllDirectory);
 
-        var packagesFiles = await GetExternalLibraries(filesSyntaxTree, dllDirectory, cancellationToken);
-        
+        var packagesFiles = await GetExternalLibrariesAsync(syntaxTree, dllDirectory, cancellationToken);
+
         foreach(var packagesFile in packagesFiles)
             Assembly.LoadFrom(packagesFile);
-        
-        var compilationResult = RoslynGames.Compile(dllDirectory, filesSyntaxTree.Trees, packagesFiles);
+
+        var compilationResult = RoslynGames.Compile(dllDirectory, syntaxTree.Trees, packagesFiles);
         if(!compilationResult.Success)
             throw new Exception(compilationResult.ToString());
         logger.Info(compilationResult.ToString());
 
-        return await externalLibraryRunner.Run(compilationResult.DllPath, data.Arguments);
+        return await externalExecutableRunner.Run(compilationResult.DllPath, data.Arguments);
     }
-    
-    public List<string> GetUnexistFiles(IReadOnlyList<string> filesPath)
-        => filesPath
-           .Select(filePath => Path.IsPathRooted(filePath) ? filePath : Path.GetFullPath(filePath))
-           .Where(filePath => !File.Exists(filePath))
-           .ToList();
-    
 
-    private async Task<IReadOnlyList<string>> GetExternalLibraries(FilesSyntaxTree filesSyntaxTree, string dllDirectory, CancellationToken token)
+    private IReadOnlyList<string> GetUnexistFiles(IReadOnlyList<string> filesPath)
     {
-        var nugetPackages = NugetPackagesParser.Parse(filesSyntaxTree.GetAllCommentRows());
+        return filesPath
+               .Select(filePath => Path.IsPathRooted(filePath) ? filePath : Path.GetFullPath(filePath))
+               .Where(filePath => !File.Exists(filePath))
+               .ToList();
+    }
+
+    private async Task<IReadOnlyList<string>> GetExternalLibrariesAsync(CsharpSyntaxTree tree, string dllDirectory, CancellationToken token)
+    {
+        var comments = await cSharpCommentExtractor.ExtractAsync(tree, token);
+        var nugetPackages = NugetPackagesParser.Parse(comments);
         if(nugetPackages.Count != 0)
         {
             var packages = await new NugetPackagesDownloader().DownloadAsync(nugetPackages, token);
@@ -69,6 +74,7 @@ internal class CSharpSourceCodeRunner
                 LogNotFoundPackages(packages);
                 Environment.Exit(1);
             }
+
             LogDownloadedPackages(packages);
             return (await GetPackagesFiles(packages, dllDirectory, token))
                    .Where(x => Path.GetExtension(x) == ".dll")
@@ -89,8 +95,9 @@ internal class CSharpSourceCodeRunner
             var supportedFrameworks = (await nugetResult.PackageReader.GetSupportedFrameworksAsync(token)).ToArray();
             var packageFramework = supportedFrameworks.FirstOrDefault(x => DefaultCompatibilityProvider.Instance.IsCompatible(myFramework, x));
             if(packageFramework == null)
-                throw new Exception($"Compatible framework for package {package.PackageId} not found. Available frameworks: {string.Join(", ", supportedFrameworks.Select(x => x.ToString()))}"); //todo text
-            logger.Debug("Use Framework {packageFramework} for Package: {packageId}", packageFramework, package.PackageId); 
+                throw new Exception(
+                    $"Compatible framework for package {package.PackageId} not found. Available frameworks: {string.Join(", ", supportedFrameworks.Select(x => x.ToString()))}"); //todo text
+            logger.Debug("Use Framework {packageFramework} for Package: {packageId}", packageFramework, package.PackageId);
 
             var targetFrameworkFiles = (await nugetResult
                                               .PackageReader
@@ -112,7 +119,7 @@ internal class CSharpSourceCodeRunner
 
         return list;
     }
-    
+
     public void LogDownloadedPackages(IReadOnlyList<DownloadPackageResult> packages)
     {
         var stringBuilder = new StringBuilder();
@@ -133,6 +140,7 @@ internal class CSharpSourceCodeRunner
             stringBuilder.AppendLine($"From remote:{Environment.NewLine}"
                                      + $"{string.Join(Environment.NewLine, dict[false].Select(x => $"{x.PackageId}: {x.Version}"))}");
         }
+
         logger.Info(stringBuilder.ToString());
     }
 
@@ -140,13 +148,18 @@ internal class CSharpSourceCodeRunner
     {
         var notFound = packages.Where(x => !x.Found);
         logger.Info($"Error when download packages, some packages not found:{Environment.NewLine}"
-                              + $"{string.Join(Environment.NewLine+"\t", notFound.Select(x => $"{x.PackageId}: {x.Version}"))}");
+                    + $"{string.Join(Environment.NewLine + "\t", notFound.Select(x => $"{x.PackageId}: {x.Version}"))}");
     }
-    
+
     private static string ExtractFile(string sourcePath, string targetPath, Stream sourceStream)
     {
         using var targetStream = File.OpenWrite(targetPath);
         sourceStream.CopyTo(targetStream);
         return targetPath;
     }
+
+    private readonly ISyntaxTreeBuilder syntaxTreeBuilder;
+    private readonly ICSharpCommentExtractor cSharpCommentExtractor;
+    private readonly IExternalExecutableRunner externalExecutableRunner;
+    private readonly ILog logger;
 }

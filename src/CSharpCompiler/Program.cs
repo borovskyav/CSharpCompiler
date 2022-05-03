@@ -22,8 +22,11 @@ internal class Program
         var cancellationToken = ConfigureGracefulStop();
         try
         {
-            var runner = new InProcessLibraryRunner();
-            var codeRunner = new CSharpSourceCodeRunner(logger, runner);
+            var stBuilder = new RoslynSyntaxTreeBuilder();
+            var commentExtractor = new FileBasedCommentExtractor();
+            var runner = new InProcessExecutableRunner();
+            var codeRunner = new CSharpSourceCodeRunner(logger, stBuilder, commentExtractor, runner);
+
             var parseResult = ConsoleArgumentsParser.Parse(arguments);
             return await codeRunner.RunAsync(parseResult, cancellationToken);
         }
@@ -39,7 +42,7 @@ internal class Program
             return 1;
         }
     }
-    
+
     private static ILog CreateLogger()
     {
         const string logFormat = "{Timestamp:hh:mm:ss.fff} {Level} {Prefix}{Message}{NewLine}";
@@ -57,10 +60,10 @@ internal class Program
                 source.Cancel();
                 sigintReceived = true;
             };
-        
+
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
             {
-                if (!sigintReceived)
+                if(!sigintReceived)
                     source.Cancel();
             };
         return source.Token;

@@ -2,12 +2,12 @@ using System.Reflection;
 
 namespace CSharpCompiler;
 
-internal interface IExternalLibraryRunner
+internal interface IExternalExecutableRunner
 {
     Task<int> Run(string dllPath, IReadOnlyList<string> arguments);
 }
 
-internal class InProcessLibraryRunner : IExternalLibraryRunner
+internal class InProcessExecutableRunner : IExternalExecutableRunner
 {
     public async Task<int> Run(string dllPath, IReadOnlyList<string> arguments)
     {
@@ -17,7 +17,7 @@ internal class InProcessLibraryRunner : IExternalLibraryRunner
         foreach(var type in assembly.GetTypes())
         {
             var methodInfo = TryGetMainMethodInfo(type);
-            if (methodInfo != null)
+            if(methodInfo != null)
                 mainList.Add((type, methodInfo));
         }
 
@@ -43,13 +43,13 @@ internal class InProcessLibraryRunner : IExternalLibraryRunner
     private object? InvokeMethod(Type type, MethodInfo methodInfo, IReadOnlyList<string> arguments)
     {
         try
-        {   
+        {
             return methodInfo.Invoke(type, new object?[] { arguments });
         }
         catch(TargetInvocationException exception) when(exception.InnerException != null)
         {
             throw exception.InnerException;
-        }   
+        }
     }
 
     private async Task<int> HandleResult(object? result)

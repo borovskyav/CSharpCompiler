@@ -16,12 +16,10 @@ public class CompilationResult
         var errors = new List<Diagnostic>();
         var warnings = new List<Diagnostic>();
         foreach(var diagnostic in diagnostics)
-        {
             if(diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error)
                 errors.Add(diagnostic);
             else
                 warnings.Add(diagnostic);
-        }
 
         Success = success && errors.Count == 0;
         Errors = errors;
@@ -46,13 +44,19 @@ public class CompilationResult
     }
 
     private string BuildCompilationErrorString()
-        => $"Compilation errors:{Environment.NewLine}{string.Join(Environment.NewLine, Errors)}";
+    {
+        return $"Compilation errors:{Environment.NewLine}{string.Join(Environment.NewLine, Errors)}";
+    }
 
     private string BuildCompilationWarningsString()
-        => $"Warnings:{Environment.NewLine}{string.Join(Environment.NewLine, Warnings)}";
+    {
+        return $"Warnings:{Environment.NewLine}{string.Join(Environment.NewLine, Warnings)}";
+    }
 
     private string BuildCompilationOutputString()
-        => $"Output: {DllPath}";
+    {
+        return $"Output: {DllPath}";
+    }
 }
 
 public class RoslynGames
@@ -61,13 +65,13 @@ public class RoslynGames
     public static CompilationResult Compile(string workingDirectory, IReadOnlyList<SyntaxTree> trees, IReadOnlyList<string> externalLibs)
     {
         var dllName = $"{Guid.NewGuid()}.dll";
-        
+
         var compilation = CSharpCompilation.Create(
-            dllName, 
-            trees, 
-            defaultReferences.Concat(externalLibs.Select(x => MetadataReference.CreateFromFile(x))), 
+            dllName,
+            trees,
+            defaultReferences.Concat(externalLibs.Select(x => MetadataReference.CreateFromFile(x))),
             defaultCompilationOptions);
-        
+
         var dllPath = Path.Combine(workingDirectory, dllName);
         var result = compilation.Emit(dllPath);
         if(!result.Success)
@@ -77,7 +81,7 @@ public class RoslynGames
     }
 
     private static readonly IEnumerable<string> defaultNamespaces =
-        new[] { "System", "System.IO", "System.Net", "System.Linq", "System.Text", "System.Text.RegularExpressions", "System.Collections.Generic", };
+        new[] { "System", "System.IO", "System.Net", "System.Linq", "System.Text", "System.Text.RegularExpressions", "System.Collections.Generic" };
 
     private static readonly IEnumerable<MetadataReference> defaultReferences =
         new[]
