@@ -22,18 +22,26 @@ Write and package a C# program which does the following:
   - [x] Linux x86 (.tag.gz)
   - [ ] MacOS ARM (.tar.gz) - со звездочкой, если будет время
 - [ ] Рефакторинг
-  - [ ] Декомпозиция
+  - [x] Декомпозиция
   - [ ] packages extractor
-    - [ ] Научиться обрабатывать /* */
-  - [ ] nuget downloader
-    - [ ] Кастомные nuget-source
+    - [x] Рефакторинг
+    - [x] Научиться обрабатывать /* */
     - [ ] Обрабать ситуацию с дублирующимися библиотеками
-    - [ ] Транзитивные зависимости nuget-пакетов
-  - [ ] roslyn compiler
-    - [ ] unsafe флаг
-  - [ ] dll runner
+  - [ ] NuGet downloader
+    - [x] Рефакторинг
+    - [ ] Кастомные NuGet-source
+    - [ ] Транзитивные зависимости NuGet-пакетов
+  - [x] DLL-extractor
+    - [x] Рефакторинг
+    - [ ] Тесты
+    - [ ] Выбирать наиболее подходящую версию пакета
+  - [ ] Roslyn compiler
+    - [x] Рефакторинг
+    - [ ] Unsafe флаг
+    - [ ] Подключить правильные референсы
+  - [ ] DLL Runner
     - [ ] InProcess or OutOfProcess
-- [ ] Проверить что скомпилированная dll работает
+- [ ] Проверить что скомпилированная DLL работает
   - [ ] Собрать все файлы в одной папке
   - [ ] Генерация runtimeconfig.json
 - [ ] Additional requirements
@@ -41,5 +49,5 @@ Write and package a C# program which does the following:
   - [ ] Compilation result should be cached between runs at a system-specific proper location following
     operating system conventions for that
   - [ ] Many instances of the program may be running in parallel
-- [ ] Прокинуть CancellationToken везде, где я забыл это сделать
-- [ ] Сделать красивые сообщения логгирования
+- [x] Прокинуть CancellationToken везде, где я забыл это сделать
+- [x] Сделать красивые сообщения логгирования

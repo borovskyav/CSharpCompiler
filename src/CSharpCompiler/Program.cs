@@ -1,5 +1,11 @@
 ﻿using System.Runtime.CompilerServices;
 
+using CSharpCompiler.CSharpCommentExtractor;
+using CSharpCompiler.CSharpCompiler;
+using CSharpCompiler.ExternalExecutableRunner;
+using CSharpCompiler.NugetPackagesDownloader;
+using CSharpCompiler.SyntaxTreeBuilder;
+
 using Vostok.Logging.Abstractions;
 using Vostok.Logging.Console;
 using Vostok.Logging.Formatting;
@@ -22,8 +28,15 @@ internal class Program
         var cancellationToken = ConfigureGracefulStop();
         try
         {
-            var runner = new InProcessLibraryRunner();
-            var codeRunner = new CSharpSourceCodeRunner(logger, runner);
+            var codeRunner = new CSharpSourceCodeRunner(
+                logger,
+                new RoslynSyntaxTreeBuilder(),
+                new RoslynSyntaxTreeCommentExtractor(),
+                new NugetClientBasedPackagesDownloader(logger),
+                new NugetPackageLibrariesExtractor.NugetPackageLibrariesExtractor(logger, "net6.0"),
+                new RoslynCSharpCompiler(logger),
+                new InProcessExecutableRunner(logger));
+
             var parseResult = ConsoleArgumentsParser.Parse(arguments);
             return await codeRunner.RunAsync(parseResult, cancellationToken);
         }
@@ -39,7 +52,7 @@ internal class Program
             return 1;
         }
     }
-    
+
     private static ILog CreateLogger()
     {
         const string logFormat = "{Timestamp:hh:mm:ss.fff} {Level} {Prefix}{Message}{NewLine}";
@@ -57,10 +70,10 @@ internal class Program
                 source.Cancel();
                 sigintReceived = true;
             };
-        
+
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
             {
-                if (!sigintReceived)
+                if(!sigintReceived)
                     source.Cancel();
             };
         return source.Token;

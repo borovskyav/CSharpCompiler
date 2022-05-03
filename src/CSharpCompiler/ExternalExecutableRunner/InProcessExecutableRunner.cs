@@ -1,15 +1,17 @@
-using System.Reflection;
+﻿using System.Reflection;
 
-namespace CSharpCompiler;
+using Vostok.Logging.Abstractions;
 
-internal interface IExternalLibraryRunner
+namespace CSharpCompiler.ExternalExecutableRunner;
+
+internal class InProcessExecutableRunner : IExternalExecutableRunner
 {
-    Task<int> Run(string dllPath, IReadOnlyList<string> arguments);
-}
+    public InProcessExecutableRunner(ILog logger)
+    {
+        this.logger = logger.ForContext<InProcessExecutableRunner>();
+    }
 
-internal class InProcessLibraryRunner : IExternalLibraryRunner
-{
-    public async Task<int> Run(string dllPath, IReadOnlyList<string> arguments)
+    public async Task<int> RunAsync(string dllPath, IReadOnlyList<string> arguments)
     {
         var assembly = Assembly.LoadFrom(dllPath);
 
@@ -17,16 +19,17 @@ internal class InProcessLibraryRunner : IExternalLibraryRunner
         foreach(var type in assembly.GetTypes())
         {
             var methodInfo = TryGetMainMethodInfo(type);
-            if (methodInfo != null)
+            if(methodInfo != null)
                 mainList.Add((type, methodInfo));
         }
 
         if(mainList.Count == 0)
-            throw new Exception("0"); //todo text
+            throw new Exception("There is no method \"Main\" in executable dll");
 
         if(mainList.Count > 1)
-            throw new Exception(">1"); //todo text
+            throw new Exception("There is two or more Main methods in executable dll");
 
+        logger.Info("Start external application");
         var result = InvokeMethod(mainList[0].type, mainList[0].methodInfo, arguments);
         return await HandleResult(result);
     }
@@ -43,19 +46,20 @@ internal class InProcessLibraryRunner : IExternalLibraryRunner
     private object? InvokeMethod(Type type, MethodInfo methodInfo, IReadOnlyList<string> arguments)
     {
         try
-        {   
+        {
             return methodInfo.Invoke(type, new object?[] { arguments });
         }
         catch(TargetInvocationException exception) when(exception.InnerException != null)
         {
             throw exception.InnerException;
-        }   
+        }
     }
 
     private async Task<int> HandleResult(object? result)
     {
         if(result == null)
             return 0;
+
         switch(result)
         {
         case Task<int> res:
@@ -69,4 +73,6 @@ internal class InProcessLibraryRunner : IExternalLibraryRunner
             return 0;
         }
     }
+
+    private readonly ILog logger;
 }

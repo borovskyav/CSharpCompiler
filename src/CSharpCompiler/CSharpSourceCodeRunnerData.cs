@@ -4,7 +4,8 @@ internal class CSharpSourceCodeRunnerData
 {
     public CSharpSourceCodeRunnerData(
         IReadOnlyList<string> filesPath,
-        IReadOnlyList<string> arguments)
+        IReadOnlyList<string> arguments
+    )
     {
         FilesPath = filesPath;
         Arguments = arguments;

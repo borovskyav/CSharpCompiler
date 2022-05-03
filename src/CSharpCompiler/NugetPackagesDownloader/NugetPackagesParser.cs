@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 using NuGet.Versioning;
 
-namespace CSharpCompiler;
+namespace CSharpCompiler.NugetPackagesDownloader;
 
 internal static class NugetPackagesParser
 {

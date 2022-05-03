@@ -13,6 +13,12 @@ class Program
         Console.WriteLine("Start fetching data...");
         var client = new RestClient("https://jsonplaceholder.typicode.com");
         foreach (var arg in args) {
+            /*
+                This example is same as
+                original jetbrains example
+                but library was updated
+                and async was used
+            */
             var request = new RestRequest("todos/{id}");
             request.AddUrlSegment("id", Int32.Parse(arg));
             Console.WriteLine(arg);

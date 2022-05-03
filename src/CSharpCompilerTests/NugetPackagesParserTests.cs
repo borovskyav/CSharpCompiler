@@ -1,3 +1,5 @@
+using CSharpCompiler.NugetPackagesDownloader;
+
 using NuGet.Versioning;
 
 namespace CSharpCompilerTests;
@@ -27,25 +29,17 @@ public class NugetPackagesParserTests
         var result = NugetPackagesParser.Parse(new[] { comment }
         );
         result.Should().BeEquivalentTo(
-            new Dictionary<string, NuGetVersion>
-                {
-                    { "FluentAssertions", new NuGetVersion(6, 6, 0) }, 
-                    { "NUnit", new NuGetVersion(3, 13, 3, "dota2") },
-                });
+            new Dictionary<string, NuGetVersion> { { "FluentAssertions", new NuGetVersion(6, 6, 0) }, { "NUnit", new NuGetVersion(3, 13, 3, "dota2") } });
     }
 
     [Test]
     public void ParseStringWithLineBreaksTest()
     {
         var comment = "Package: FluentAssertions 6.6.0\rPackage: 3.13-beta3-3 NUnit3TestAdapter:\r\n  Package: NUnit 3.13.3-dota2 Package: 6.6.0-beta1 NUnit";
-        var result = NugetPackagesParser.Parse(new[] { comment, }
+        var result = NugetPackagesParser.Parse(new[] { comment }
         );
         result.Should().BeEquivalentTo(
-            new Dictionary<string, NuGetVersion>
-                {
-                    { "FluentAssertions", new NuGetVersion(6, 6, 0) }, 
-                    { "NUnit", new NuGetVersion(3, 13, 3, "dota2") },
-                });
+            new Dictionary<string, NuGetVersion> { { "FluentAssertions", new NuGetVersion(6, 6, 0) }, { "NUnit", new NuGetVersion(3, 13, 3, "dota2") } });
     }
 
     [Test]
