@@ -8,7 +8,7 @@ public class FullCycleTests
     public void SetUp()
     {
         var stBuilder = new RoslynSyntaxTreeBuilder();
-        var commentExtractor = new FileBasedCommentExtractor();
+        var commentExtractor = new RoslynSyntaxTreeCommentExtractor();
         var runner = new InProcessExecutableRunner();
         codeRunner = new CSharpSourceCodeRunner(new ConsoleLog(), stBuilder, commentExtractor, runner);
     }

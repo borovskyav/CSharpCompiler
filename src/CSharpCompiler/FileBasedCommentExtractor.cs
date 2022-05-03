@@ -8,7 +8,7 @@ internal class FileBasedCommentExtractor : ICSharpCommentExtractor
         foreach(var filePath in syntaxTree.FilesPath)
         foreach(var line in await File.ReadAllLinesAsync(filePath, token))
             if(line.Trim().StartsWith("//"))
-                list.Add(line.Trim().Substring(2).Trim());
+                list.Add(line.Trim());
 
         return list;
     }

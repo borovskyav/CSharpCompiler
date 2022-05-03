@@ -23,7 +23,7 @@ internal class Program
         try
         {
             var stBuilder = new RoslynSyntaxTreeBuilder();
-            var commentExtractor = new FileBasedCommentExtractor();
+            var commentExtractor = new RoslynSyntaxTreeCommentExtractor();
             var runner = new InProcessExecutableRunner();
             var codeRunner = new CSharpSourceCodeRunner(logger, stBuilder, commentExtractor, runner);
 
