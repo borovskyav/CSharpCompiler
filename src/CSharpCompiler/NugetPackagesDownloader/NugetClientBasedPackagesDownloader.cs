@@ -6,7 +6,6 @@ using NuGet.Configuration;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
-using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
 using NuGet.Versioning;
@@ -15,23 +14,22 @@ using Vostok.Logging.Abstractions;
 
 namespace CSharpCompiler.NugetPackagesDownloader;
 
-internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
+internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader, IDisposable
 {
     public NugetClientBasedPackagesDownloader(ILog logger, string targetFramework)
     {
         this.logger = logger.ForContext<NugetClientBasedPackagesDownloader>();
         nugetClientLogger = NullLogger.Instance;
-        settings = Settings.LoadDefaultSettings(null);
+        var settings = Settings.LoadDefaultSettings(AppDomain.CurrentDomain.BaseDirectory);
         globalPackagesFolder = SettingsUtility.GetGlobalPackagesFolder(settings);
 
         cache = new SourceCacheContext();
-        repository = Repository.Factory.GetCoreV3(globalSource);
+        var sourceRepositoryProvider = new SourceRepositoryProvider(new PackageSourceProvider(settings), Repository.Provider.GetCoreV3());
+        repositories = sourceRepositoryProvider.GetRepositories().ToArray();
 
         platformPackage = new PackageIdentity("Microsoft.NETCore.App.Ref", new NuGetVersion(6, 0, 4));
         applicationFramework = NuGetFramework.Parse(targetFramework);
     }
-
-    private const string globalSource = "https://api.nuget.org/v3/index.json";
 
     public async Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(IReadOnlyList<PackageIdentity> packages, CancellationToken token = default)
     {
@@ -55,10 +53,7 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
         return downloadResourceResults;
     }
 
-    private async Task<DownloadPackageResult> DownloadPackageAsync(
-        SourcePackageDependencyInfo package,
-        CancellationToken token
-    )
+    private async Task<DownloadPackageResult> DownloadPackageAsync(SourcePackageDependencyInfo package, CancellationToken token)
     {
         var downloadResource = await package.Source.GetResourceAsync<DownloadResource>(token);
         var result = await downloadResource.GetDownloadResourceResultAsync(
@@ -92,7 +87,7 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
             Enumerable.Empty<PackageReference>(),
             Enumerable.Empty<PackageIdentity>(),
             dict.Values,
-            new[] { repository.PackageSource },
+            repositories.Select(x => x.PackageSource),
             NullLogger.Instance);
 
         var resolver = new PackageResolver();
@@ -110,22 +105,22 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
         if(availablePackages.ContainsKey(package))
             return;
 
-        var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>(token);
-        var dependencyInfo = await dependencyInfoResource.ResolvePackage(
-                                 package,
-                                 applicationFramework,
-                                 cache,
-                                 nugetClientLogger,
-                                 token);
+        var tasks = repositories.Select(async repository =>
+            {
+                var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>(token);
+                var dependencyInfo = await dependencyInfoResource.ResolvePackage(package, applicationFramework, cache, nugetClientLogger, token);
 
-        if(dependencyInfo == null)
-            return;
+                if(dependencyInfo == null)
+                    return;
 
-        availablePackages.TryAdd(dependencyInfo, dependencyInfo);
-        var tasks = dependencyInfo
-                    .Dependencies
-                    .Select(async dependency =>
-                                await GetPackageDependencies(new PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion), availablePackages, token));
+                availablePackages.TryAdd(dependencyInfo, dependencyInfo);
+                var tasks = dependencyInfo
+                            .Dependencies
+                            .Select(async dependency =>
+                                        await GetPackageDependencies(new PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion), availablePackages, token));
+                await Task.WhenAll(tasks);
+            });
+
         await Task.WhenAll(tasks);
     }
 
@@ -163,14 +158,18 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
         }
     }
 
+    public void Dispose()
+    {
+        cache.Dispose();
+    }
+
     private readonly ILogger nugetClientLogger;
     private readonly string globalPackagesFolder;
-    private readonly SourceRepository repository;
+    private readonly IReadOnlyList<SourceRepository> repositories;
     private readonly SourceCacheContext cache;
 
     private readonly NuGetFramework applicationFramework;
     private readonly PackageIdentity platformPackage;
 
     private readonly ILog logger;
-    private readonly ISettings? settings;
 }

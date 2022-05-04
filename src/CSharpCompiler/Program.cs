@@ -25,16 +25,17 @@ internal class Program
     public static async Task<int> Main(string[] arguments)
     {
         var logger = CreateLogger();
+        const string frameworkVersion = "net6.0";
+        var downloader = new NugetClientBasedPackagesDownloader(logger, frameworkVersion);
         var cancellationToken = ConfigureGracefulStop();
         try
         {
-            var frameworkVersion = "net6.0";
             var codeRunner = new CSharpSourceCodeRunner(
                 logger,
                 new RoslynSyntaxTreeBuilder(),
                 new RoslynSyntaxTreeCommentExtractor(),
                 new NugetPackagesParser(logger),
-                new NugetClientBasedPackagesDownloader(logger, frameworkVersion),
+                downloader,
                 new NugetPackageLibrariesExtractor.NugetPackageLibrariesExtractor(logger, frameworkVersion),
                 new RoslynCSharpCompiler(logger),
                 new InProcessExecutableRunner(logger));
@@ -52,6 +53,10 @@ internal class Program
 
             logger.Error(exception.Message);
             return 1;
+        }
+        finally
+        {
+            downloader.Dispose();
         }
     }
 
