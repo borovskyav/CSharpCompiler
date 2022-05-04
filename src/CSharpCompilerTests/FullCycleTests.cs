@@ -14,7 +14,10 @@ public class FullCycleTests
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        var di = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CSharpCompiler"));
+        var tempPath = Path.Combine(Path.GetTempPath(), "CSharpCompiler");
+        if (!Directory.Exists(tempPath))
+            return;
+        var di = new DirectoryInfo(tempPath);
         foreach(var dir in di.GetDirectories())
             dir.Delete(true);
     }
