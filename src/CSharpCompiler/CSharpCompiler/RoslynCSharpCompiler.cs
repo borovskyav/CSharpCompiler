@@ -20,37 +20,40 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
     public string Compile(
         IReadOnlyList<SyntaxTree> trees,
         IReadOnlyList<string> externalLibs,
-        string workingDirectory,
+        string dllPath,
         bool allowUnsafe,
         CancellationToken token = default
     )
     {
-        var dllName = $"{Guid.NewGuid()}.dll";
-
-        if(allowUnsafe)
-            defaultCompilationOptions.WithAllowUnsafe(true);
+        var compilationOptions = defaultCompilationOptions.WithAllowUnsafe(allowUnsafe);
 
         var references = externalLibs.Select(x => MetadataReference.CreateFromFile(x));
-
+        var dllName = Path.GetFileName(dllPath);
         var compilation = CSharpCompilation.Create(
             dllName,
             trees,
             references,
-            defaultCompilationOptions);
+            compilationOptions);
 
         foreach(var packagesFile in externalLibs)
             Assembly.LoadFrom(packagesFile);
 
-        logger.Info("Start compilation");
-
-        var dllPath = Path.Combine(workingDirectory, dllName);
-        var result = compilation.Emit(dllPath, cancellationToken: token);
-
-        logger.Info("Compilation completed, output file: {output}", dllPath);
-        diagnosticResultAnalyzer.Analyze(result.Diagnostics, result.Success, showWarningsOnSuccess: true);
-
-        CopyRuntimeConfig(dllPath);
-        return dllPath;
+        try
+        {
+            logger.Info("Start compilation");
+            var result = compilation.Emit(dllPath, cancellationToken: token);
+            logger.Info("Compilation completed, output file: {output}", dllPath);
+        
+            diagnosticResultAnalyzer.Analyze(result.Diagnostics, result.Success, showWarningsOnSuccess: true);
+            CopyRuntimeConfig(dllPath);
+            return dllPath;
+        }
+        catch(Exception)
+        {
+            if (File.Exists(dllPath))
+                File.Delete(dllPath);
+            throw;
+        }
     }
 
     private void CopyRuntimeConfig(string dllPath)
@@ -65,7 +68,7 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
 
     private readonly IDiagnosticResultAnalyzer diagnosticResultAnalyzer;
 
-    private readonly CSharpCompilationOptions defaultCompilationOptions =
+    private CSharpCompilationOptions defaultCompilationOptions =
         new CSharpCompilationOptions(OutputKind.ConsoleApplication)
             .WithOverflowChecks(true)
             .WithOptimizationLevel(OptimizationLevel.Release)

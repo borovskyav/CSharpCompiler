@@ -12,7 +12,7 @@ internal class RoslynSyntaxTreeBuilder : ISyntaxTreeBuilder
         this.diagnosticResultAnalyzer = diagnosticResultAnalyzer;
     }
     
-    public async Task<CsharpSyntaxTree> BuildAndAnalyzeAsync(IReadOnlyList<string> filesPath, CancellationToken token)
+    public async Task<CsharpSyntaxTree> BuildAndAnalyzeTreeAsync(IReadOnlyList<string> filesPath, CancellationToken token)
     {
         var tasks = filesPath.Select(x => ParseFile(x, token));
         var result = await Task.WhenAll(tasks);

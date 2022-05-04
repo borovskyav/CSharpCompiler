@@ -2,5 +2,5 @@
 
 internal interface ISyntaxTreeBuilder
 {
-    Task<CsharpSyntaxTree> BuildAndAnalyzeAsync(IReadOnlyList<string> filesPath, CancellationToken token = default);
+    Task<CsharpSyntaxTree> BuildAndAnalyzeTreeAsync(IReadOnlyList<string> filesPath, CancellationToken token = default);
 }

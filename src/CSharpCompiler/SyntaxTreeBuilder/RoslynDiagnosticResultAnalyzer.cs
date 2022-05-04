@@ -16,17 +16,17 @@ internal class RoslynDiagnosticResultAnalyzer : IDiagnosticResultAnalyzer
     public void Analyze(IReadOnlyList<Diagnostic> diagnostics, bool success, bool showWarningsOnSuccess)
     {
         var isDiagnosticsHasErrors = !success || diagnostics.Any(IsDiagnosticError);
-        if (!isDiagnosticsHasErrors && showWarningsOnSuccess)
+        if(!isDiagnosticsHasErrors && (!showWarningsOnSuccess || diagnostics.Count == 0))
             return;
-        
+
         LogCompilationResult(diagnostics, isDiagnosticsHasErrors);
         if(isDiagnosticsHasErrors)
             throw new Exception("Compilation failed");
     }
-    
+
     private void LogCompilationResult(IReadOnlyList<Diagnostic> diagnostics, bool compilationError)
     {
-        var stringBuilder = new StringBuilder();
+        var stringBuilder = new StringBuilder($"Compilation completed with {(compilationError ? "errors" : "warnings")}:");
         var grouping = diagnostics.GroupBy(IsDiagnosticError).OrderBy(x => x.Key);
         foreach(var group in grouping)
         {

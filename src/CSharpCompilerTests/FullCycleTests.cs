@@ -11,6 +11,14 @@ namespace CSharpCompilerTests;
 
 public class FullCycleTests
 {
+    [OneTimeSetUp]
+    public void OneTimeSetUp()
+    {
+        var di = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CSharpCompiler"));
+        foreach (var dir in di.GetDirectories())
+            dir.Delete(true);
+    }
+    
     [SetUp]
     public void SetUp()
     {
@@ -105,13 +113,20 @@ public class FullCycleTests
     }
 
     [Test]
-    public async Task MultipleFilesLoggerWithUnsafeFlagTest()
+    public async Task UnsafeCodeTest()
     {
         var data = new CSharpSourceCodeRunnerData(
-            TestHelpers.GetFilesInFolder("MultipleFilesLogger"),
-            new[] { "print", "something" },
+            TestHelpers.GetFilesPath("UnsafeCode.cs"),
+            new []{"10"},
+            false);
+        Func<Task<int>> act = async () => await codeRunner!.RunAsync(data);
+        await act.Should().ThrowAsync<Exception>().WithMessage("Compilation failed");
+        
+        var data1 = new CSharpSourceCodeRunnerData(
+            TestHelpers.GetFilesPath("UnsafeCode.cs"),
+            new []{"10"},
             true);
-        (await codeRunner!.RunAsync(data)).Should().Be(0);
+        (await codeRunner!.RunAsync(data1)).Should().Be(100);
     }
 
     private CSharpSourceCodeRunner? codeRunner;

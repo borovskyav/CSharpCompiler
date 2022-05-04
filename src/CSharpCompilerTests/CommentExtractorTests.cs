@@ -21,7 +21,7 @@ internal class CommentExtractorTests<T> where T : ICSharpCommentExtractor, new()
     public async Task SimpleCommentsTest(string fileName, string[] expectedComments)
     {
         var files = TestHelpers.GetFilesPath(fileName);
-        var tree = await treeBuilder.BuildAndAnalyzeAsync(files);
+        var tree = await treeBuilder.BuildAndAnalyzeTreeAsync(files);
         (await extractor.ExtractAsync(tree)).Should().BeEquivalentTo(expectedComments);
     }
 
@@ -33,7 +33,7 @@ internal class CommentExtractorTests<T> where T : ICSharpCommentExtractor, new()
             Assert.Ignore("Can not realize this logic...");
 
         var files = TestHelpers.GetFilesPath(fileName);
-        var tree = await treeBuilder.BuildAndAnalyzeAsync(files);
+        var tree = await treeBuilder.BuildAndAnalyzeTreeAsync(files);
         (await extractor.ExtractAsync(tree)).Should().BeEquivalentTo(expectedComments);
     }
 

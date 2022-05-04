@@ -7,7 +7,7 @@ internal interface ICSharpCompiler
     string Compile(
         IReadOnlyList<SyntaxTree> trees,
         IReadOnlyList<string> externalLibs,
-        string workingDirectory,
+        string dllPath,
         bool allowUnsafe,
         CancellationToken token = default
     );
