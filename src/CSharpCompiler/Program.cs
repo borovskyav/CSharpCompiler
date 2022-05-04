@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
+using CSharpCompiler.CompileDirectoryDetecting;
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
@@ -33,6 +34,7 @@ internal class Program
             var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
             var codeRunner = new CSharpSourceCodeRunner(
                 logger,
+                new CompileDirectoryDetector(logger, "CSharpCompiler", "Generated.dll"),
                 new RoslynSyntaxTreeBuilder(roslynDiagnosticResultAnalyzer),
                 new RoslynSyntaxTreeCommentExtractor(),
                 new NugetPackagesParser(logger),

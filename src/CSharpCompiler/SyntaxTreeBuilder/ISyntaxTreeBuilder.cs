@@ -1,6 +1,8 @@
-﻿namespace CSharpCompiler.SyntaxTreeBuilder;
+﻿using Microsoft.CodeAnalysis;
+
+namespace CSharpCompiler.SyntaxTreeBuilder;
 
 internal interface ISyntaxTreeBuilder
 {
-    Task<CsharpSyntaxTree> BuildAndAnalyzeTreeAsync(IReadOnlyList<string> filesPath, CancellationToken token = default);
+    SyntaxTree[] BuildAndAnalyzeTreeAsync(IReadOnlyList<string> fileContents, CancellationToken token = default);
 }

@@ -66,8 +66,7 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
     {
         var tasks = new[]
             {
-                package.PackageReader.GetLibItemsAsync(token), 
-                package.PackageReader.GetItemsAsync(PackagingConstants.Folders.Ref, token),
+                package.PackageReader.GetLibItemsAsync(token), package.PackageReader.GetItemsAsync(PackagingConstants.Folders.Ref, token),
                 package.PackageReader.GetItemsAsync(PackagingConstants.Folders.Runtimes, token),
                 package.PackageReader.GetItemsAsync(PackagingConstants.Folders.Analyzers, token),
             };
@@ -84,14 +83,14 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
             if(nearestFramework != null)
             {
                 filesFound = true;
-                list.AddRange( array
-                     .First(x => x.TargetFramework == nearestFramework)
-                     .Items
-                     .Where(x => Path.GetExtension(x) == ".dll"));
+                list.AddRange(array
+                              .First(x => x.TargetFramework == nearestFramework)
+                              .Items
+                              .Where(x => Path.GetExtension(x) == ".dll"));
             }
         }
 
-        if (!filesFound)
+        if(!filesFound)
             throw new Exception($"Package {packageId} found but package framework did not resolved");
         return list;
     }

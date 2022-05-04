@@ -1,16 +1,14 @@
-﻿using CSharpCompiler.SyntaxTreeBuilder;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace CSharpCompiler.CSharpCommentExtractor;
 
 internal class RoslynSyntaxTreeCommentExtractor : ICSharpCommentExtractor
 {
-    public Task<IReadOnlyList<string>> ExtractAsync(CsharpSyntaxTree syntaxTree, CancellationToken token = default)
+    public Task<IReadOnlyList<string>> ExtractAsync(IReadOnlyList<SyntaxTree> syntaxTrees, CancellationToken token = default)
     {
         var list = new List<string>();
-        foreach(var tree in syntaxTree.Trees)
+        foreach(var tree in syntaxTrees)
         {
             var walker = new CommentsWalker();
             walker.Visit(tree.GetRoot(token));

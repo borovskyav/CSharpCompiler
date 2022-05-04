@@ -41,7 +41,7 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader, ID
         var packagesToInstall = (await ResolveTransitiveDependencies(packages, token)).ToArray();
         var downloadTasks = packagesToInstall.Select(x => DownloadPackageAsync(x, token));
         var downloadResourceResults = await Task.WhenAll(downloadTasks);
-        
+
         var canceled = downloadResourceResults.Any(x => x.Canceled);
         if(canceled)
             throw new OperationCanceledException("Download operation has been canceled");
@@ -49,7 +49,7 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader, ID
         LogDownloadResult(downloadResourceResults, notFound);
         if(notFound)
             throw new Exception("Some packages not found");
-        
+
         return downloadResourceResults;
     }
 

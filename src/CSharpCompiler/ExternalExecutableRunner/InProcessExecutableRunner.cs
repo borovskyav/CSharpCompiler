@@ -14,7 +14,7 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
     public async Task<int> RunAsync(string dllPath, IReadOnlyList<string> arguments)
     {
         var assembly = Assembly.LoadFrom(dllPath);
-        
+
         var mainList = new List<(Type type, MethodInfo methodInfo)>();
         foreach(var type in assembly.GetTypes())
         {

@@ -27,6 +27,7 @@ internal class RoslynDiagnosticResultAnalyzer : IDiagnosticResultAnalyzer
     private void LogCompilationResult(IReadOnlyList<Diagnostic> diagnostics, bool compilationError)
     {
         var stringBuilder = new StringBuilder($"Compilation completed with {(compilationError ? "errors" : "warnings")}:");
+        stringBuilder.AppendLine();
         var grouping = diagnostics.GroupBy(IsDiagnosticError).OrderBy(x => x.Key);
         foreach(var group in grouping)
         {
@@ -44,7 +45,7 @@ internal class RoslynDiagnosticResultAnalyzer : IDiagnosticResultAnalyzer
         }
 
         if(compilationError)
-            logger.Error("Compilation completed with errors:" + Environment.NewLine + stringBuilder);
+            logger.Error(stringBuilder.ToString());
         else
             logger.Info(stringBuilder.ToString());
     }

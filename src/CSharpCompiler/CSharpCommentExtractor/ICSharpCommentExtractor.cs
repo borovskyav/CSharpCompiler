@@ -1,8 +1,8 @@
-﻿using CSharpCompiler.SyntaxTreeBuilder;
+﻿using Microsoft.CodeAnalysis;
 
 namespace CSharpCompiler.CSharpCommentExtractor;
 
 internal interface ICSharpCommentExtractor
 {
-    Task<IReadOnlyList<string>> ExtractAsync(CsharpSyntaxTree syntaxTree, CancellationToken token = default);
+    Task<IReadOnlyList<string>> ExtractAsync(IReadOnlyList<SyntaxTree> syntaxTrees, CancellationToken token = default);
 }

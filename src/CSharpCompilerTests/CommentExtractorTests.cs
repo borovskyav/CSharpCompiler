@@ -5,15 +5,12 @@ using Vostok.Logging.Console;
 
 namespace CSharpCompilerTests;
 
-// ReSharper disable once StaticMemberInGenericType
-[TestFixture(typeof(FileBasedCommentExtractor))]
-[TestFixture(typeof(RoslynSyntaxTreeCommentExtractor))]
-internal class CommentExtractorTests<T> where T : ICSharpCommentExtractor, new()
+internal class CommentExtractorTests
 {
     public CommentExtractorTests()
     {
-        extractor = new T();
-        treeBuilder = new RoslynSyntaxTreeBuilder(new RoslynDiagnosticResultAnalyzer(new ConsoleLog( )));
+        extractor = new RoslynSyntaxTreeCommentExtractor();
+        treeBuilder = new RoslynSyntaxTreeBuilder(new RoslynDiagnosticResultAnalyzer(new ConsoleLog()));
     }
 
     [Test]
@@ -21,7 +18,7 @@ internal class CommentExtractorTests<T> where T : ICSharpCommentExtractor, new()
     public async Task SimpleCommentsTest(string fileName, string[] expectedComments)
     {
         var files = TestHelpers.GetFilesPath(fileName);
-        var tree = await treeBuilder.BuildAndAnalyzeTreeAsync(files);
+        var tree = treeBuilder.BuildAndAnalyzeTreeAsync(files.Select(File.ReadAllText).ToArray());
         (await extractor.ExtractAsync(tree)).Should().BeEquivalentTo(expectedComments);
     }
 
@@ -29,16 +26,13 @@ internal class CommentExtractorTests<T> where T : ICSharpCommentExtractor, new()
     [TestCaseSource(nameof(multilineTestFixtures))]
     public async Task MultilineTest(string fileName, string[] expectedComments)
     {
-        if(extractor is FileBasedCommentExtractor)
-            Assert.Ignore("Can not realize this logic...");
-
         var files = TestHelpers.GetFilesPath(fileName);
-        var tree = await treeBuilder.BuildAndAnalyzeTreeAsync(files);
+        var tree = treeBuilder.BuildAndAnalyzeTreeAsync(files.Select(File.ReadAllText).ToArray());
         (await extractor.ExtractAsync(tree)).Should().BeEquivalentTo(expectedComments);
     }
 
     private readonly ISyntaxTreeBuilder treeBuilder;
-    private T extractor;
+    private readonly ICSharpCommentExtractor extractor;
 
     public static object[] multilineTestFixtures =
         {

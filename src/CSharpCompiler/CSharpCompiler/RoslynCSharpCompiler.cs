@@ -43,14 +43,14 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
             logger.Info("Start compilation");
             var result = compilation.Emit(dllPath, cancellationToken: token);
             logger.Info("Compilation completed, output file: {output}", dllPath);
-        
+
             diagnosticResultAnalyzer.Analyze(result.Diagnostics, result.Success, showWarningsOnSuccess: true);
             CopyRuntimeConfig(dllPath);
             return dllPath;
         }
         catch(Exception)
         {
-            if (File.Exists(dllPath))
+            if(File.Exists(dllPath))
                 File.Delete(dllPath);
             throw;
         }
@@ -68,7 +68,7 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
 
     private readonly IDiagnosticResultAnalyzer diagnosticResultAnalyzer;
 
-    private CSharpCompilationOptions defaultCompilationOptions =
+    private readonly CSharpCompilationOptions defaultCompilationOptions =
         new CSharpCompilationOptions(OutputKind.ConsoleApplication)
             .WithOverflowChecks(true)
             .WithOptimizationLevel(OptimizationLevel.Release)

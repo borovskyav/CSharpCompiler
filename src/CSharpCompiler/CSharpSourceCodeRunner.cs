@@ -1,12 +1,12 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-
+﻿using CSharpCompiler.CompileDirectoryDetecting;
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
 using CSharpCompiler.NugetPackageLibrariesExtractor;
 using CSharpCompiler.NugetPackagesDownloader;
 using CSharpCompiler.SyntaxTreeBuilder;
+
+using Microsoft.CodeAnalysis;
 
 using Vostok.Logging.Abstractions;
 
@@ -16,6 +16,7 @@ internal class CSharpSourceCodeRunner
 {
     public CSharpSourceCodeRunner(
         ILog logger,
+        ICompileDirectoryDetector compileDirectoryDetector,
         ISyntaxTreeBuilder syntaxTreeBuilder,
         ICSharpCommentExtractor cSharpCommentExtractor,
         NugetPackagesParser nugetPackagesParser,
@@ -25,6 +26,7 @@ internal class CSharpSourceCodeRunner
         IExternalExecutableRunner externalExecutableRunner
     )
     {
+        this.compileDirectoryDetector = compileDirectoryDetector;
         this.syntaxTreeBuilder = syntaxTreeBuilder;
         this.externalExecutableRunner = externalExecutableRunner;
         this.nugetPackageLibrariesExtractor = nugetPackageLibrariesExtractor;
@@ -50,49 +52,16 @@ internal class CSharpSourceCodeRunner
 
     private async Task<string> BuildSourcesAsync(CSharpSourceCodeRunnerData data, CancellationToken token)
     {
-        var tempDirectory = Path.Combine(Path.GetTempPath(), "CSharpCompiler");
-        var folderHashCodeSources = data.FilesPath.Select(Path.GetFileName).Where(x => !string.IsNullOrEmpty(x));
-        var directoryName = CalculateHashCode(folderHashCodeSources.ToArray()!);
-        var directoryPath = Path.Combine(tempDirectory, directoryName);
-        var readFilesTasks = data.FilesPath.Select(async x => await File.ReadAllTextAsync(x, token));
-        var files = await Task.WhenAll(readFilesTasks);
-        var dllName = CalculateHashCode(files.Concat(new []{data.AllowUnsafe.ToString()}).ToArray());
-        var dllPath = Path.Combine(directoryPath, dllName + ".dll");
-
-        if(File.Exists(dllPath))
-        {
-            logger.Info("Given files have been compiled already, reuse previous build from {dllPath}", dllPath);
-            return dllPath;
-        }
-        
-        var directoryExists = Directory.Exists(directoryPath);
-        if(directoryExists)
-        {
-            logger.Info("Directory exists, but the functionality of partial replacement of libraries has not yet been implemented. Delete the directory.");
-            Directory.Delete(Path.Combine(directoryPath), true);
-        }
-        
-        Directory.CreateDirectory(directoryPath);
-        var syntaxTree = await syntaxTreeBuilder.BuildAndAnalyzeTreeAsync(data.FilesPath, token);
-
-        var externalLibs = await GetExternalLibrariesAsync(syntaxTree, directoryPath, token);
-        return cSharpCompiler.Compile(syntaxTree.Trees, externalLibs, dllPath, data.AllowUnsafe, token);
+        var fileContents = await Task.WhenAll(data.FilesPath.Select(async x => await File.ReadAllTextAsync(x, token)));
+        var result = compileDirectoryDetector.Detect(fileContents, data.AllowUnsafe);
+        if(result.DllExists)
+            return result.DllPath;
+        var syntaxTree = syntaxTreeBuilder.BuildAndAnalyzeTreeAsync(fileContents, token);
+        var externalLibs = await GetExternalLibrariesAsync(syntaxTree, result.DirectoryPath, token);
+        return cSharpCompiler.Compile(syntaxTree, externalLibs, result.DllPath, data.AllowUnsafe, token);
     }
 
-    private string CalculateHashCode(IReadOnlyList<string> array)
-    {
-        using var md5 = MD5.Create();
-        var encoder = Encoding.UTF8;
-        var bytes = array.Aggregate(new List<byte>(),
-                                    (total, next) =>
-                                        {
-                                            total.AddRange(md5.ComputeHash(encoder.GetBytes(next)));
-                                            return total;
-                                        });
-        return BitConverter.ToString(md5.ComputeHash(bytes.ToArray())).Replace("-", string.Empty).ToLowerInvariant();
-    }
-
-    private async Task<IReadOnlyList<string>> GetExternalLibrariesAsync(CsharpSyntaxTree tree, string dllDirectory, CancellationToken token)
+    private async Task<IReadOnlyList<string>> GetExternalLibrariesAsync(IReadOnlyList<SyntaxTree> tree, string dllDirectory, CancellationToken token)
     {
         var comments = await cSharpCommentExtractor.ExtractAsync(tree, token);
         var nugetPackages = nugetPackagesParser.Parse(comments);
@@ -110,6 +79,7 @@ internal class CSharpSourceCodeRunner
                .ToList();
     }
 
+    private readonly ICompileDirectoryDetector compileDirectoryDetector;
     private readonly ISyntaxTreeBuilder syntaxTreeBuilder;
     private readonly ICSharpCommentExtractor cSharpCommentExtractor;
     private readonly NugetPackagesParser nugetPackagesParser;

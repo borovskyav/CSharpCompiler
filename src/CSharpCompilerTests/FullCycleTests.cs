@@ -1,4 +1,5 @@
-﻿using CSharpCompiler.CSharpCommentExtractor;
+﻿using CSharpCompiler.CompileDirectoryDetecting;
+using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
 using CSharpCompiler.NugetPackageLibrariesExtractor;
@@ -15,7 +16,7 @@ public class FullCycleTests
     public void OneTimeSetUp()
     {
         var tempPath = Path.Combine(Path.GetTempPath(), "CSharpCompiler");
-        if (!Directory.Exists(tempPath))
+        if(!Directory.Exists(tempPath))
             return;
         var di = new DirectoryInfo(tempPath);
         foreach(var dir in di.GetDirectories())
@@ -29,6 +30,7 @@ public class FullCycleTests
         var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
         codeRunner = new CSharpSourceCodeRunner(
             logger,
+            new CompileDirectoryDetector(logger, "CSharpCompilerTests", $"Generated-{Guid.NewGuid().ToString()}.dll"),
             new RoslynSyntaxTreeBuilder(roslynDiagnosticResultAnalyzer),
             new RoslynSyntaxTreeCommentExtractor(),
             new NugetPackagesParser(logger),
