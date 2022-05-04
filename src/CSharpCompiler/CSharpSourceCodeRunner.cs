@@ -44,7 +44,7 @@ internal class CSharpSourceCodeRunner
         if(unexistFiles.Count > 0)
             throw new FileNotFoundException($"Some files not found: {string.Join(Environment.NewLine, unexistFiles)}");
 
-        var syntaxTree = await syntaxTreeBuilder.BuildAsync(data.FilesPath, token);
+        var syntaxTree = await syntaxTreeBuilder.BuildAndAnalyzeAsync(data.FilesPath, token);
 
         var dllDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Guid.NewGuid().ToString());
         Directory.CreateDirectory(dllDirectory);

@@ -15,14 +15,15 @@ public class FullCycleTests
     public void SetUp()
     {
         var logger = new ConsoleLog();
+        var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
         codeRunner = new CSharpSourceCodeRunner(
             logger,
-            new RoslynSyntaxTreeBuilder(),
+            new RoslynSyntaxTreeBuilder(roslynDiagnosticResultAnalyzer),
             new RoslynSyntaxTreeCommentExtractor(),
             new NugetPackagesParser(logger),
             new NugetClientBasedPackagesDownloader(logger, "net6.0"),
             new NugetPackageLibrariesExtractor(logger, "net6.0"),
-            new RoslynCSharpCompiler(logger),
+            new RoslynCSharpCompiler(roslynDiagnosticResultAnalyzer, logger),
             new InProcessExecutableRunner(logger));
     }
 

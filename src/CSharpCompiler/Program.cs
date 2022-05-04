@@ -30,14 +30,15 @@ internal class Program
         var cancellationToken = ConfigureGracefulStop();
         try
         {
+            var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
             var codeRunner = new CSharpSourceCodeRunner(
                 logger,
-                new RoslynSyntaxTreeBuilder(),
+                new RoslynSyntaxTreeBuilder(roslynDiagnosticResultAnalyzer),
                 new RoslynSyntaxTreeCommentExtractor(),
                 new NugetPackagesParser(logger),
                 downloader,
                 new NugetPackageLibrariesExtractor.NugetPackageLibrariesExtractor(logger, frameworkVersion),
-                new RoslynCSharpCompiler(logger),
+                new RoslynCSharpCompiler(roslynDiagnosticResultAnalyzer, logger),
                 new InProcessExecutableRunner(logger));
 
             var parseResult = ConsoleArgumentsParser.Parse(arguments);

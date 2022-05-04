@@ -1,20 +1,19 @@
 using System.Reflection;
-using System.Text;
+
+using CSharpCompiler.SyntaxTreeBuilder;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
 
 using Vostok.Logging.Abstractions;
 
 namespace CSharpCompiler.CSharpCompiler;
 
-// todo подумать про настройку дефолтных флагов. Какие ставить? Такие-же как в моем приложении стоят? Какой-то кастом?
-// todo Понять, какие либы подгружать? Такие же как в моем приложении?
 internal class RoslynCSharpCompiler : ICSharpCompiler
 {
-    public RoslynCSharpCompiler(ILog logger)
+    public RoslynCSharpCompiler(IDiagnosticResultAnalyzer diagnosticResultAnalyzer, ILog logger)
     {
+        this.diagnosticResultAnalyzer = diagnosticResultAnalyzer;
         this.logger = logger.ForContext<RoslynCSharpCompiler>();
     }
 
@@ -47,10 +46,8 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
         var dllPath = Path.Combine(workingDirectory, dllName);
         var result = compilation.Emit(dllPath, cancellationToken: token);
 
-        var compilationError = !result.Success || result.Diagnostics.Any(IsDiagnosticError);
-        LogCompilationResult(dllPath, result, compilationError);
-        if(compilationError)
-            throw new Exception("Compilation failed");
+        logger.Info("Compilation completed, output file: {output}", dllPath);
+        diagnosticResultAnalyzer.Analyze(result.Diagnostics, result.Success, showWarningsOnSuccess: true);
 
         CopyRuntimeConfig(dllPath);
         return dllPath;
@@ -66,38 +63,7 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
         File.Copy(currentRuntimeConfigPath, outputRuntimeConfigPath);
     }
 
-    private void LogCompilationResult(string dllPath, EmitResult emitResult, bool compilationError)
-    {
-        var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("Compilation has been finished");
-        var grouping = emitResult
-                       .Diagnostics
-                       .GroupBy(IsDiagnosticError)
-                       .OrderBy(x => x.Key);
-        foreach(var group in grouping)
-        {
-            var result = group.Key switch
-                {
-                    true => "Errors:",
-                    false => "Warnings:",
-                };
-            stringBuilder.AppendLine(result);
-            foreach(var diagnostic in group.Select(x => x))
-            {
-                stringBuilder.AppendLine($"\t{diagnostic}:");
-            }
-        }
-
-        stringBuilder.Append($"Output: {dllPath}");
-
-        if(compilationError)
-            logger.Error(stringBuilder.ToString());
-        else
-            logger.Info(stringBuilder.ToString());
-    }
-
-    private bool IsDiagnosticError(Diagnostic diagnostic)
-        => diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error;
+    private readonly IDiagnosticResultAnalyzer diagnosticResultAnalyzer;
 
     private readonly CSharpCompilationOptions defaultCompilationOptions =
         new CSharpCompilationOptions(OutputKind.ConsoleApplication)
