@@ -17,5 +17,4 @@ internal class CSharpSourceCodeRunnerData
     public IReadOnlyList<string> ProcessArguments { get; }
 
     public bool AllowUnsafe { get; set; }
-
 }

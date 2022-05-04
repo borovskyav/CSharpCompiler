@@ -28,13 +28,14 @@ internal class Program
         var cancellationToken = ConfigureGracefulStop();
         try
         {
+            var frameworkVersion = "net6.0";
             var codeRunner = new CSharpSourceCodeRunner(
                 logger,
                 new RoslynSyntaxTreeBuilder(),
                 new RoslynSyntaxTreeCommentExtractor(),
                 new NugetPackagesParser(logger),
-                new NugetClientBasedPackagesDownloader(logger),
-                new NugetPackageLibrariesExtractor.NugetPackageLibrariesExtractor(logger, "net6.0"),
+                new NugetClientBasedPackagesDownloader(logger, frameworkVersion),
+                new NugetPackageLibrariesExtractor.NugetPackageLibrariesExtractor(logger, frameworkVersion),
                 new RoslynCSharpCompiler(logger),
                 new InProcessExecutableRunner(logger));
 

@@ -20,7 +20,7 @@ public class FullCycleTests
             new RoslynSyntaxTreeBuilder(),
             new RoslynSyntaxTreeCommentExtractor(),
             new NugetPackagesParser(logger),
-            new NugetClientBasedPackagesDownloader(logger),
+            new NugetClientBasedPackagesDownloader(logger, "net6.0"),
             new NugetPackageLibrariesExtractor(logger, "net6.0"),
             new RoslynCSharpCompiler(logger),
             new InProcessExecutableRunner(logger));
@@ -30,10 +30,10 @@ public class FullCycleTests
     public async Task SimpleConsoleWriteLineTest()
     {
         var data = new CSharpSourceCodeRunnerData(
-            TestHelpers.GetFilesPath("SimpleConsoleWriteLine.cs"), 
+            TestHelpers.GetFilesPath("SimpleConsoleWriteLine.cs"),
             Array.Empty<string>(),
             false
-            );
+        );
         (await codeRunner!.RunAsync(data)).Should().Be(0);
     }
 
@@ -44,7 +44,7 @@ public class FullCycleTests
             TestHelpers.GetFilesPath("NewTemplateHelloWorld.cs"),
             Array.Empty<string>(),
             false
-            );
+        );
         (await codeRunner!.RunAsync(data1)).Should().Be(1);
     }
 
@@ -55,7 +55,7 @@ public class FullCycleTests
             TestHelpers.GetFilesPath("ThrowException.cs"),
             new[] { "Hello", "World!" },
             false
-            );
+        );
         Func<Task<int>> action = async () => await codeRunner!.RunAsync(data2);
         (await action.Should().ThrowAsync<Exception>()).WithMessage("Hello, World! =(");
     }
@@ -67,19 +67,18 @@ public class FullCycleTests
             TestHelpers.GetFilesPath("AsyncWork.cs"),
             Array.Empty<string>(),
             false
-            );
+        );
         (await codeRunner!.RunAsync(data)).Should().Be(0);
     }
 
     [Test]
-    [Ignore("todo: починить транзитивные зависимости")]
     public async Task TransitiveDependencyTest()
     {
         var data = new CSharpSourceCodeRunnerData(
             TestHelpers.GetFilesPath("TransitiveDependency.cs"),
             Array.Empty<string>(),
             false
-            );
+        );
         (await codeRunner!.RunAsync(data)).Should().Be(143);
     }
 
@@ -90,7 +89,7 @@ public class FullCycleTests
             TestHelpers.GetFilesPath("MultipleDependencies.cs"),
             Array.Empty<string>(),
             false
-            );
+        );
         (await codeRunner!.RunAsync(data)).Should().Be(122);
     }
 

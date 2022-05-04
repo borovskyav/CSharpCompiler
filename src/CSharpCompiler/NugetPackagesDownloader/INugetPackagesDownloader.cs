@@ -1,8 +1,8 @@
-﻿using NuGet.Versioning;
+﻿using NuGet.Packaging.Core;
 
 namespace CSharpCompiler.NugetPackagesDownloader;
 
 internal interface INugetPackagesDownloader
 {
-    Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(Dictionary<string, NuGetVersion> packages, CancellationToken token = default);
+    Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(IReadOnlyList<PackageIdentity> packages, CancellationToken token = default);
 }

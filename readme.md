@@ -30,7 +30,7 @@ Write and package a C# program which does the following:
   - [ ] NuGet Downloader
     - [x] Рефакторинг
     - [ ] Кастомные NuGet-source
-    - [ ] Транзитивные зависимости NuGet-пакетов
+    - [x] Транзитивные зависимости NuGet-пакетов
   - [x] DLL Extractor
     - [x] Рефакторинг
     - [ ] Тесты

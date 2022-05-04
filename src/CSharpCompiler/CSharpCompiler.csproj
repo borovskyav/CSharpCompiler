@@ -12,6 +12,7 @@
     <PackageReference Include="NuGet.Protocol" Version="6.1.0" />
     <PackageReference Include="NuGet.LibraryModel" Version="6.1.0" />
     <PackageReference Include="NuGet.Commands" Version="6.1.0" />
+    <PackageReference Include="NuGet.Resolver" Version="6.1.0" />
     <PackageReference Include="Vostok.Logging.Console" Version="1.0.8" />
   </ItemGroup>
 

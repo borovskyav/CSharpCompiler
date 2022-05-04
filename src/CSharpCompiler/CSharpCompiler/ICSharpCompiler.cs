@@ -9,5 +9,6 @@ internal interface ICSharpCompiler
         IReadOnlyList<string> externalLibs,
         string workingDirectory,
         bool allowUnsafe,
-        CancellationToken token = default);
+        CancellationToken token = default
+    );
 }

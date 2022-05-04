@@ -10,7 +10,7 @@ internal static class ConsoleArgumentsParser
 
         var filesMeet = false;
         var delimiterMeet = false;
-        
+
         foreach(var argument in arguments)
         {
             if(!filesMeet && argument.StartsWith(argumentsSuffix) && argument != delimiter)

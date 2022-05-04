@@ -8,22 +8,22 @@ internal class DownloadPackageResult
     public DownloadPackageResult(
         string packageId,
         NuGetVersion version,
-        bool found,
         DownloadResourceResult? nugetResult,
-        bool fromCache
+        bool notFound,
+        bool canceled
     )
     {
         PackageId = packageId;
         Version = version;
         NugetResult = nugetResult;
-        Found = found;
-        FromCache = fromCache;
+        NotFound = notFound;
+        Canceled = canceled;
     }
 
     public string PackageId { get; }
     public NuGetVersion Version { get; }
-    public bool Found { get; }
+    public bool NotFound { get; }
 
     public DownloadResourceResult? NugetResult { get; }
-    public bool FromCache { get; }
+    public bool Canceled { get; }
 }

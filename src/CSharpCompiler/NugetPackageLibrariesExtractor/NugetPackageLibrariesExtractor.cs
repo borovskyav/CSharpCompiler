@@ -16,6 +16,8 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
     {
         this.logger = logger.ForContext<NugetPackageLibrariesExtractor>();
         this.frameworkVersion = NuGetFramework.Parse(frameworkVersion);
+
+        frameworkReducer = new FrameworkReducer();
     }
 
     public async Task<IReadOnlyList<string>> ExtractAsync(
@@ -36,17 +38,17 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
     )
     {
         var nugetResult = package.NugetResult!;
+        var libItems = (await nugetResult.PackageReader.GetLibItemsAsync(token)).ToArray();
+        var nearestFramework = frameworkReducer.GetNearest(frameworkVersion, libItems.Select(x => x.TargetFramework));
 
-        var targetFrameworkFiles = GetNearest(await nugetResult.PackageReader.GetLibItemsAsync(token), frameworkVersion);
+        if(nearestFramework == null)
+            return Array.Empty<string>();
 
-        if(targetFrameworkFiles == null)
-            throw new Exception("Nuget package {packageId} supports {compatibleFramework}, but folder not found");
-        
-        logger.Debug("Use Framework {packageFramework} for Package {packageId}", targetFrameworkFiles.TargetFramework, package.PackageId);
+        logger.Debug("Use Framework {packageFramework} for Package {packageId}", nearestFramework, package.PackageId);
 
         return await nugetResult.PackageReader.CopyFilesAsync(
                    extractDirectory,
-                   targetFrameworkFiles.Items,
+                   libItems.First(x => x.TargetFramework == nearestFramework).Items,
                    ExtractFile,
                    NullLogger.Instance,
                    token
@@ -59,10 +61,8 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
         sourceStream.CopyTo(targetStream);
         return targetPath;
     }
-    
-    private static T GetNearest<T>(IEnumerable<T> items, NuGetFramework projectFramework) where T : class, IFrameworkSpecific
-        => NuGetFrameworkUtility.GetNearest(items, projectFramework, e => e.TargetFramework);
 
     private readonly ILog logger;
     private readonly NuGetFramework frameworkVersion;
+    private readonly FrameworkReducer frameworkReducer;
 }

@@ -1,12 +1,14 @@
-﻿using System.Text;
+﻿using System.Collections.Concurrent;
+using System.Text;
 
 using NuGet.Common;
 using NuGet.Configuration;
+using NuGet.Frameworks;
+using NuGet.Packaging;
 using NuGet.Packaging.Core;
-using NuGet.Packaging.Signing;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
-using NuGet.Versioning;
+using NuGet.Resolver;
 
 using Vostok.Logging.Abstractions;
 
@@ -14,134 +16,151 @@ namespace CSharpCompiler.NugetPackagesDownloader;
 
 internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
 {
-    public NugetClientBasedPackagesDownloader(ILog logger)
+    public NugetClientBasedPackagesDownloader(ILog logger, string targetFramework)
     {
         this.logger = logger.ForContext<NugetClientBasedPackagesDownloader>();
         nugetClientLogger = NullLogger.Instance;
-        settings = Settings.LoadDefaultSettings(null);
+        var settings = Settings.LoadDefaultSettings(null);
         globalPackagesFolder = SettingsUtility.GetGlobalPackagesFolder(settings);
 
         cache = new SourceCacheContext();
         repository = Repository.Factory.GetCoreV3(globalSource);
+
+        applicationFramework = NuGetFramework.Parse(targetFramework);
     }
 
     private const string globalSource = "https://api.nuget.org/v3/index.json";
 
-    public async Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(Dictionary<string, NuGetVersion> packages, CancellationToken token = default)
+    public async Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(IReadOnlyList<PackageIdentity> packages, CancellationToken token = default)
     {
         logger.Info("Found {packagesCount} packages included in source code, start download", packages.Count);
 
-        var list = packages
-            .Select(package => GetFromGlobalCacheOrDownloadPackage(package.Key, package.Value, token));
-        var resultPackages = await Task.WhenAll(list);
+        var packagesToInstall = (await ResolveTransitiveDependencies(packages, token)).ToArray();
+        var downloadTasks = packagesToInstall.Select(x => DownloadPackageAsync(x, token));
+        var downloadResourceResults = await Task.WhenAll(downloadTasks);
 
-        var notFound = resultPackages.Any(x => !x.Found);
-        LogDownloadResult(resultPackages, notFound);
+        var canceled = downloadResourceResults.Any(x => x.Canceled);
+        if(canceled)
+            throw new OperationCanceledException("Download operation has been canceled");
+        var notFound = downloadResourceResults.Any(x => x.NotFound);
+        LogDownloadResult(downloadResourceResults, notFound);
         if(notFound)
             throw new Exception("Some packages not found");
-        return resultPackages;
+        return downloadResourceResults;
     }
 
-    private async Task<DownloadPackageResult> GetFromGlobalCacheOrDownloadPackage(
-        string packageId,
-        NuGetVersion version,
+    private async Task<DownloadPackageResult> DownloadPackageAsync(
+        SourcePackageDependencyInfo package,
         CancellationToken token
     )
     {
-        var packageIdentity = new PackageIdentity(packageId, version);
-        var package = GetFromCache(packageIdentity);
-        if(package != null)
-            return new DownloadPackageResult(packageId, version, true, package, true);
-
-        using var packageStream = new MemoryStream();
-        if(!await DownloadPackageAsync(packageIdentity, packageStream, token))
-            return new DownloadPackageResult(packageId, version, false, null, false);
-
-        packageStream.Seek(0, SeekOrigin.Begin);
-
-        package = await AddToGlobalCache(packageIdentity, packageStream, token);
-        return new DownloadPackageResult(packageId, version, true, package, false);
+        var downloadResource = await package.Source.GetResourceAsync<DownloadResource>(token);
+        var result = await downloadResource.GetDownloadResourceResultAsync(
+                         package,
+                         new PackageDownloadContext(cache),
+                         globalPackagesFolder,
+                         nugetClientLogger,
+                         token);
+        return new DownloadPackageResult(
+            package.Id,
+            package.Version,
+            result,
+            result.Status == DownloadResourceResultStatus.NotFound,
+            result.Status == DownloadResourceResultStatus.Cancelled);
     }
 
-    private DownloadResourceResult? GetFromCache(PackageIdentity packageIdentity)
-        => GlobalPackagesFolderUtility.GetPackage(packageIdentity, globalPackagesFolder);
-
-    private async Task<bool> DownloadPackageAsync(
-        PackageIdentity packageIdentity,
-        Stream packageStream,
+    private async Task<IEnumerable<SourcePackageDependencyInfo>> ResolveTransitiveDependencies(
+        IReadOnlyList<PackageIdentity> packages,
         CancellationToken token
     )
     {
-        var resource = await repository.GetResourceAsync<FindPackageByIdResource>(token);
-        if(!await resource.DoesPackageExistAsync(packageIdentity.Id, packageIdentity.Version, cache, nugetClientLogger, token))
-            return false;
+        var dict = new ConcurrentDictionary<PackageIdentity, SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
 
-        if(!await resource.CopyNupkgToStreamAsync(
-                packageIdentity.Id,
-                packageIdentity.Version,
-                packageStream,
-                cache,
-                nugetClientLogger,
-                token
-            ))
-            throw new Exception("Error when downloading package from remote source");
-        return true;
+        await Task.WhenAll(packages.Select(x => GetPackageDependencies(x, dict, token)));
+
+        var resolverContext = new PackageResolverContext(
+            DependencyBehavior.Lowest,
+            packages.Select(x => x.Id),
+            Enumerable.Empty<string>(),
+            Enumerable.Empty<PackageReference>(),
+            Enumerable.Empty<PackageIdentity>(),
+            dict.Values,
+            new[] { repository.PackageSource },
+            NullLogger.Instance);
+
+        var resolver = new PackageResolver();
+        return resolver
+               .Resolve(resolverContext, token)
+               .Select(p => dict.TryGetValue(p, out var value) ? value : throw new Exception());
     }
 
-    private Task<DownloadResourceResult> AddToGlobalCache(
-        PackageIdentity packageIdentity,
-        Stream packageStream,
+    private async Task GetPackageDependencies(
+        PackageIdentity package,
+        ConcurrentDictionary<PackageIdentity, SourcePackageDependencyInfo> availablePackages,
         CancellationToken token
     )
     {
-        return GlobalPackagesFolderUtility.AddPackageAsync(
-            globalSource,
-            packageIdentity,
-            packageStream,
-            globalPackagesFolder,
-            Guid.Empty,
-            ClientPolicyContext.GetClientPolicy(settings, nugetClientLogger),
-            nugetClientLogger,
-            token
-        );
+        if(availablePackages.ContainsKey(package))
+            return;
+
+        var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>(token);
+        var dependencyInfo = await dependencyInfoResource.ResolvePackage(
+                                 package,
+                                 applicationFramework,
+                                 cache,
+                                 nugetClientLogger,
+                                 token);
+
+        if(dependencyInfo == null)
+            return;
+
+        availablePackages.TryAdd(dependencyInfo, dependencyInfo);
+        var tasks = dependencyInfo
+                    .Dependencies
+                    .Select(async dependency =>
+                                await GetPackageDependencies(new PackageIdentity(dependency.Id, dependency.VersionRange.MinVersion), availablePackages, token));
+        await Task.WhenAll(tasks);
     }
 
     private void LogDownloadResult(IEnumerable<DownloadPackageResult> packages, bool notFound)
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.Append("Download process has been finished:");
-        var grouping = packages
-                       .GroupBy(x => (x.Found, x.FromCache))
-                       .OrderBy(x => x.Key);
-        foreach(var group in grouping)
+        stringBuilder.Append("Download process has been finished");
+        if(notFound)
         {
-            var result = (group.Key.Found, group.Key.FromCache) switch
-                {
-                    (false, false) => "Not found packages:",
-                    (true, false) => "Downloaded from remote:",
-                    (true, true) => "From cache:",
-                    _ => throw new ArgumentOutOfRangeException(),
-                };
-            stringBuilder.AppendLine();
-            stringBuilder.Append(result);
-            foreach(var package in group.Select(x => x))
-            {
-                stringBuilder.AppendLine();
-                stringBuilder.Append($"\t{package.PackageId}: {package.Version}");
-            }
+            var notFoundPackages = packages.Where(x => x.NotFound);
+            AppendArray(stringBuilder, "Not found packages:", notFoundPackages);
+            logger.Error(stringBuilder.ToString());
+            return;
         }
 
-        if(notFound)
-            logger.Error(stringBuilder.ToString());
-        else
-            logger.Info(stringBuilder.ToString());
+        logger.Info(stringBuilder.ToString());
+
+        if(logger.IsEnabledForDebug())
+        {
+            var sb = new StringBuilder();
+            var downloadedPackages = packages.Where(x => !x.NotFound);
+            AppendArray(sb, "Downloaded packages:", downloadedPackages);
+            logger.Debug(sb.ToString());
+        }
     }
 
-    private readonly ILog logger;
+    private void AppendArray(StringBuilder stringBuilder, string header, IEnumerable<DownloadPackageResult> array)
+    {
+        stringBuilder.AppendLine();
+        stringBuilder.Append(header);
+        foreach(var item in array)
+        {
+            stringBuilder.AppendLine();
+            stringBuilder.Append($"\t{item.PackageId}: {item.Version}");
+        }
+    }
 
     private readonly ILogger nugetClientLogger;
     private readonly string globalPackagesFolder;
     private readonly SourceRepository repository;
     private readonly SourceCacheContext cache;
-    private readonly ISettings? settings;
+
+    private readonly NuGetFramework applicationFramework;
+    private readonly ILog logger;
 }

@@ -1,6 +1,6 @@
-using System.Text;
 using System.Text.RegularExpressions;
 
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
 using Vostok.Logging.Abstractions;
@@ -14,7 +14,7 @@ internal class NugetPackagesParser
         this.logger = logger.ForContext<NugetPackagesParser>();
     }
 
-    public Dictionary<string, NuGetVersion> Parse(IEnumerable<string> strings)
+    public IReadOnlyList<PackageIdentity> Parse(IEnumerable<string> strings)
     {
         var list = new List<(string name, NuGetVersion version)>();
         foreach(var str in strings)
@@ -33,21 +33,10 @@ internal class NugetPackagesParser
         var duplicatePackages = groupedPackages
                                 .Where(x => x.Distinct().Count() > 1)
                                 .ToArray();
-        
-        if(duplicatePackages.Length != 0)
-            LogDuplicatePackagesWarn(duplicatePackages);
-        return groupedPackages.ToDictionary(x => x.Key, x => x.Max()!);
-    }
 
-    private void LogDuplicatePackagesWarn(IGrouping<string, NuGetVersion>[] nuGetVersions)
-    {
-        var sb = new StringBuilder("There are duplicate includes of packages with different versions, take max version:");
-        foreach(var nuGetVersion in nuGetVersions)
-        {
-            sb.AppendLine();
-            sb.Append($"\t{string.Join(", ", nuGetVersion)} => {nuGetVersion.Max()}");
-        }
-        logger.Warn(sb.ToString());
+        if(duplicatePackages.Length != 0)
+            logger.Warn("There are duplicate includes of packages with different versions, will try to take suitable version");
+        return list.Select(x => new PackageIdentity(x.name, x.version)).ToArray();
     }
 
     private readonly ILog logger;

@@ -30,7 +30,7 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
 
         if(allowUnsafe)
             defaultCompilationOptions.WithAllowUnsafe(true);
-        
+
         var compilation = CSharpCompilation.Create(
             dllName,
             trees,
