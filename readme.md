@@ -33,17 +33,17 @@ Write and package a C# program which does the following:
     - [x] Транзитивные зависимости NuGet-пакетов
   - [x] DLL Extractor
     - [x] Рефакторинг
-    - [ ] Тесты
     - [x] Выбирать наиболее подходящую версию пакета
+    - [ ] Не разобрался с runtime-файлами
   - [ ] Roslyn Compiler
     - [x] Рефакторинг
     - [x] Unsafe флаг
     - [ ] Подключить правильные референсы
   - [ ] DLL Runner
     - [ ] InProcess or OutOfProcess
-- [ ] Проверить что скомпилированная DLL работает
-  - [ ] Собрать все файлы в одной папке
-  - [ ] Генерация runtimeconfig.json
+- [x] Проверить что скомпилированная DLL работает
+  - [x] Собрать все файлы в одной папке
+  - [x] Генерация runtimeconfig.json
 - [ ] Additional requirements
 
   - [ ] Compilation result should be cached between runs at a system-specific proper location following

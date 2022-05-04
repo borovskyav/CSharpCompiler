@@ -28,7 +28,9 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
     {
         logger.Info("Extract libraries from the nuget packages");
         var tasks = packages.Select(package => ExtractAsync(package, extractDirectory, token));
-        return (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
+        var files = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
+        Directory.Delete(Path.Combine(extractDirectory, "lib"), true); // костыль...
+        return files;
     }
 
     private async Task<IEnumerable<string>> ExtractAsync(
@@ -49,14 +51,16 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
         return await nugetResult.PackageReader.CopyFilesAsync(
                    extractDirectory,
                    libItems.First(x => x.TargetFramework == nearestFramework).Items,
-                   ExtractFile,
+                   (sourcePath, _, sourceStream) => ExtractFile(sourcePath, extractDirectory, sourceStream),
                    NullLogger.Instance,
                    token
                );
     }
 
-    private string ExtractFile(string sourcePath, string targetPath, Stream sourceStream)
+    private string ExtractFile(string sourcePath, string targetDirectory, Stream sourceStream)
     {
+        var fileName = Path.GetFileName(sourcePath);
+        var targetPath = Path.Combine(targetDirectory, fileName);
         using var targetStream = File.OpenWrite(targetPath);
         sourceStream.CopyTo(targetStream);
         return targetPath;

@@ -46,17 +46,28 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
         var result = compilation.Emit(dllPath, cancellationToken: token);
 
         var compilationError = !result.Success || result.Diagnostics.Any(IsDiagnosticError);
-        LogCompilationResult(result, compilationError);
+        LogCompilationResult(dllPath, result, compilationError);
         if(compilationError)
             throw new Exception("Compilation failed");
 
+        CopyRuntimeConfig(dllPath);
         return dllPath;
     }
 
-    private void LogCompilationResult(EmitResult emitResult, bool compilationError)
+    private void CopyRuntimeConfig(string dllPath)
+    {
+        const string runtimeconfig = "runtimeconfig.json";
+        var outputRuntimeConfigPath = Path.ChangeExtension(dllPath, runtimeconfig);
+        var currentRuntimeConfigPath = Path.ChangeExtension(typeof(Program).Assembly.Location, runtimeconfig);
+
+        logger.Info($"Copying current {runtimeconfig} to {outputRuntimeConfigPath}");
+        File.Copy(currentRuntimeConfigPath, outputRuntimeConfigPath);
+    }
+
+    private void LogCompilationResult(string dllPath, EmitResult emitResult, bool compilationError)
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.Append("Compilation has been finished");
+        stringBuilder.AppendLine("Compilation has been finished");
         var grouping = emitResult
                        .Diagnostics
                        .GroupBy(IsDiagnosticError)
@@ -68,14 +79,14 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
                     true => "Errors:",
                     false => "Warnings:",
                 };
-            stringBuilder.AppendLine();
-            stringBuilder.Append(result);
+            stringBuilder.AppendLine(result);
             foreach(var diagnostic in group.Select(x => x))
             {
-                stringBuilder.AppendLine();
-                stringBuilder.Append($"\t{diagnostic}:");
+                stringBuilder.AppendLine($"\t{diagnostic}:");
             }
         }
+
+        stringBuilder.Append($"Output: {dllPath}");
 
         if(compilationError)
             logger.Error(stringBuilder.ToString());
