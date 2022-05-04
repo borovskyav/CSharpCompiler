@@ -20,7 +20,7 @@ Write and package a C# program which does the following:
   - [x] Windows x86-x64 (.zip)
   - [x] MacOS x86 (.tar.gz)
   - [x] Linux x86 (.tag.gz)
-  - [ ] MacOS ARM (.tar.gz) - со звездочкой, если будет время
+  - [ ] MacOS ARM (.tar.gz) (*)
 - [ ] Рефакторинг
   - [x] Декомпозиция
   - [x] Packages Extractor
@@ -34,20 +34,22 @@ Write and package a C# program which does the following:
   - [x] DLL Extractor
     - [x] Рефакторинг
     - [x] Выбирать наиболее подходящую версию пакета
-    - [ ] Не разобрался с runtime-файлами
-  - [ ] Roslyn Compiler
+    - [ ] Правильное подлючение runtime-пакетов (*)
+  - [x] Roslyn Compiler
     - [x] Рефакторинг
     - [x] Unsafe флаг
-    - [ ] Подключить правильные референсы
-  - [ ] DLL Runner
-    - [ ] InProcess or OutOfProcess
+    - [x] Подключить правильные референсы
+  - [x] DLL Runner
+    - [x] InProcess or OutOfProcess
 - [x] Проверить что скомпилированная DLL работает
   - [x] Собрать все файлы в одной папке
   - [x] Генерация runtimeconfig.json
+  - [ ] Настроить CI проверки работы скомпилированной DLL (*)
 - [ ] Additional requirements
 
   - [ ] Compilation result should be cached between runs at a system-specific proper location following
     operating system conventions for that
-  - [ ] Many instances of the program may be running in parallel
+  - [x] Many instances of the program may be running in parallel
 - [x] Прокинуть CancellationToken везде, где я забыл это сделать
 - [x] Сделать красивые сообщения логгирования
+- [ ] Прибраться в использовании Microsoft.NETCore.App.Ref - не тянуть весь пакет, брать только список зависимостей (*)

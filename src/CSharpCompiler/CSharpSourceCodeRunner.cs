@@ -58,11 +58,6 @@ internal class CSharpSourceCodeRunner
     {
         var comments = await cSharpCommentExtractor.ExtractAsync(tree, token);
         var nugetPackages = nugetPackagesParser.Parse(comments);
-        if(nugetPackages.Count == 0)
-        {
-            logger.Info("No included nuget packages, skip downloading step");
-            return Array.Empty<string>();
-        }
 
         var packages = await nugetPackagesDownloader.DownloadAsync(nugetPackages, token);
         var libraryFilesPath = await nugetPackageLibrariesExtractor.ExtractAsync(packages, dllDirectory, token);

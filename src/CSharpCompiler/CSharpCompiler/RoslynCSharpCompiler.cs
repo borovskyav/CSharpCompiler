@@ -31,10 +31,12 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
         if(allowUnsafe)
             defaultCompilationOptions.WithAllowUnsafe(true);
 
+        var references = externalLibs.Select(x => MetadataReference.CreateFromFile(x));
+
         var compilation = CSharpCompilation.Create(
             dllName,
             trees,
-            defaultReferences.Concat(externalLibs.Select(x => MetadataReference.CreateFromFile(x))),
+            references,
             defaultCompilationOptions);
 
         foreach(var packagesFile in externalLibs)
@@ -96,19 +98,6 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
 
     private bool IsDiagnosticError(Diagnostic diagnostic)
         => diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error;
-
-    private readonly IEnumerable<MetadataReference> defaultReferences =
-        new[]
-            {
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.dll")),
-                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Console.dll")),
-                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Runtime.dll")),
-                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Core.dll")),
-                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Private.Uri.dll")),
-                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "System.Net.Http.dll")),
-                MetadataReference.CreateFromFile(Path.Combine(typeof(object).Assembly.Location, "..", "netstandard.dll")),
-            };
 
     private readonly CSharpCompilationOptions defaultCompilationOptions =
         new CSharpCompilationOptions(OutputKind.ConsoleApplication)

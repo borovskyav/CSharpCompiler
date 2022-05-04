@@ -9,6 +9,7 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
+using NuGet.Versioning;
 
 using Vostok.Logging.Abstractions;
 
@@ -20,12 +21,13 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
     {
         this.logger = logger.ForContext<NugetClientBasedPackagesDownloader>();
         nugetClientLogger = NullLogger.Instance;
-        var settings = Settings.LoadDefaultSettings(null);
+        settings = Settings.LoadDefaultSettings(null);
         globalPackagesFolder = SettingsUtility.GetGlobalPackagesFolder(settings);
 
         cache = new SourceCacheContext();
         repository = Repository.Factory.GetCoreV3(globalSource);
 
+        platformPackage = new PackageIdentity("Microsoft.NETCore.App.Ref", new NuGetVersion(6, 0, 4));
         applicationFramework = NuGetFramework.Parse(targetFramework);
     }
 
@@ -33,7 +35,10 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
 
     public async Task<IReadOnlyList<DownloadPackageResult>> DownloadAsync(IReadOnlyList<PackageIdentity> packages, CancellationToken token = default)
     {
-        logger.Info("Found {packagesCount} packages included in source code, start download", packages.Count);
+        if(packages.Count == 0)
+            logger.Info("No included nuget packages, downloading only refs package");
+        else
+            logger.Info("Found {packagesCount} packages included in source code, start download", packages.Count);
 
         var packagesToInstall = (await ResolveTransitiveDependencies(packages, token)).ToArray();
         var downloadTasks = packagesToInstall.Select(x => DownloadPackageAsync(x, token));
@@ -46,6 +51,7 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
         LogDownloadResult(downloadResourceResults, notFound);
         if(notFound)
             throw new Exception("Some packages not found");
+
         return downloadResourceResults;
     }
 
@@ -77,10 +83,11 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
         var dict = new ConcurrentDictionary<PackageIdentity, SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
 
         await Task.WhenAll(packages.Select(x => GetPackageDependencies(x, dict, token)));
+        await GetPackageDependencies(platformPackage, dict, token);
 
         var resolverContext = new PackageResolverContext(
             DependencyBehavior.Lowest,
-            packages.Select(x => x.Id),
+            packages.Concat(new[] { platformPackage }).Select(x => x.Id),
             Enumerable.Empty<string>(),
             Enumerable.Empty<PackageReference>(),
             Enumerable.Empty<PackageIdentity>(),
@@ -162,5 +169,8 @@ internal class NugetClientBasedPackagesDownloader : INugetPackagesDownloader
     private readonly SourceCacheContext cache;
 
     private readonly NuGetFramework applicationFramework;
+    private readonly PackageIdentity platformPackage;
+
     private readonly ILog logger;
+    private readonly ISettings? settings;
 }
