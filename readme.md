@@ -27,10 +27,12 @@ Write and package a C# program which does the following:
     - [x] Рефакторинг
     - [x] Научиться обрабатывать /* */
     - [x] Обрабать ситуацию с дублирующимися библиотеками
-  - [ ] NuGet Downloader
+  - [x] NuGet Downloader
     - [x] Рефакторинг
-    - [ ] Кастомные NuGet-source
+    - [x] Кастомные NuGet-source
     - [x] Транзитивные зависимости NuGet-пакетов
+    - [ ] Переехать на RemoteDependencyWalker (*)
+    - [x] Что будет происходить если резолвер не смог разрезолвить граф? (*)
   - [x] DLL Extractor
     - [x] Рефакторинг
     - [x] Выбирать наиболее подходящую версию пакета
@@ -45,10 +47,10 @@ Write and package a C# program which does the following:
   - [x] Собрать все файлы в одной папке
   - [x] Генерация runtimeconfig.json
   - [ ] Настроить CI проверки работы скомпилированной DLL (*)
-- [ ] Additional requirements
+- [x] Additional requirements
 
-  - [ ] Compilation result should be cached between runs at a system-specific proper location following
-    operating system conventions for that
+  - [x] Compilation result should be cached between runs at a system-specific proper location following
+    operating system conventions for that. Note: не увидел смысла кешировать библиотеки, так как в большинстве случаев всё и так лежит в глобальном кеше.
   - [x] Many instances of the program may be running in parallel
 - [x] Прокинуть CancellationToken везде, где я забыл это сделать
 - [x] Сделать красивые сообщения логгирования

@@ -64,24 +64,36 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
 
     private async Task<IEnumerable<string>> GetFilesFromPackage(string packageId, DownloadResourceResult package, CancellationToken token)
     {
-        var tasks = new[] { package.PackageReader.GetLibItemsAsync(token), package.PackageReader.GetItemsAsync(PackagingConstants.Folders.Ref, token), };
+        var tasks = new[]
+            {
+                package.PackageReader.GetLibItemsAsync(token), 
+                package.PackageReader.GetItemsAsync(PackagingConstants.Folders.Ref, token),
+                package.PackageReader.GetItemsAsync(PackagingConstants.Folders.Runtimes, token),
+                package.PackageReader.GetItemsAsync(PackagingConstants.Folders.Analyzers, token),
+            };
 
         var fileGroups = await Task.WhenAll(tasks);
+        var list = new List<string>();
+        var filesFound = false;
+        if(!fileGroups.SelectMany(x => x).Any())
+            return list;
         foreach(var fileGroup in fileGroups)
         {
             var array = fileGroup.ToArray();
             var nearestFramework = frameworkReducer.GetNearest(frameworkVersion, array.Select(x => x.TargetFramework));
             if(nearestFramework != null)
             {
-                logger.Debug("Use Framework {packageFramework} for Package {packageId}", nearestFramework, packageId);
-                return array
-                       .First(x => x.TargetFramework == nearestFramework)
-                       .Items
-                       .Where(x => Path.GetExtension(x) == ".dll");
+                filesFound = true;
+                list.AddRange( array
+                     .First(x => x.TargetFramework == nearestFramework)
+                     .Items
+                     .Where(x => Path.GetExtension(x) == ".dll"));
             }
         }
 
-        return Array.Empty<string>();
+        if (!filesFound)
+            throw new Exception($"Package {packageId} found but package framework did not resolved");
+        return list;
     }
 
     private string ExtractFile(string sourcePath, string targetDirectory, Stream sourceStream)

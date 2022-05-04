@@ -15,10 +15,10 @@ public class FullCycleTests
     public void OneTimeSetUp()
     {
         var di = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "CSharpCompiler"));
-        foreach (var dir in di.GetDirectories())
+        foreach(var dir in di.GetDirectories())
             dir.Delete(true);
     }
-    
+
     [SetUp]
     public void SetUp()
     {
@@ -113,18 +113,29 @@ public class FullCycleTests
     }
 
     [Test]
+    public async Task PackageFrameworkNotFoundTest()
+    {
+        var data = new CSharpSourceCodeRunnerData(
+            TestHelpers.GetFilesPath("PackageFrameworkNotFound.cs"),
+            new[] { "print", "something" },
+            false);
+        Func<Task<int>> act = async () => await codeRunner!.RunAsync(data);
+        await act.Should().ThrowAsync<Exception>().WithMessage("Package Nancy found but package framework did not resolved");
+    }
+
+    [Test]
     public async Task UnsafeCodeTest()
     {
         var data = new CSharpSourceCodeRunnerData(
             TestHelpers.GetFilesPath("UnsafeCode.cs"),
-            new []{"10"},
+            new[] { "10" },
             false);
         Func<Task<int>> act = async () => await codeRunner!.RunAsync(data);
         await act.Should().ThrowAsync<Exception>().WithMessage("Compilation failed");
-        
+
         var data1 = new CSharpSourceCodeRunnerData(
             TestHelpers.GetFilesPath("UnsafeCode.cs"),
-            new []{"10"},
+            new[] { "10" },
             true);
         (await codeRunner!.RunAsync(data1)).Should().Be(100);
     }
