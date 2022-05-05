@@ -8,6 +8,16 @@ Write and package a C# program which does the following:
 - Runs it with all other arguments 
 - The code should be reliable, clear and understandable
 
+**How to use**
+
+Download suitable version for your operation system from releases page.
+
+Run CSharpCompiler executable file:
+
+```bash
+./CSharpCompiler [Flags | -allowUnsafe] [Files | 1.cs 2.cs 3.cs] -- [Compiled program arguments | 1 2 3]
+```
+
 **Todo:**
 
 - [x] Работающий прототип
@@ -21,7 +31,7 @@ Write and package a C# program which does the following:
   - [x] MacOS x86 (.tar.gz)
   - [x] Linux x86 (.tag.gz)
   - [ ] MacOS ARM (.tar.gz) (*)
-- [ ] Рефакторинг
+- [x] Рефакторинг
   - [x] Декомпозиция
   - [x] Packages Extractor
     - [x] Рефакторинг
