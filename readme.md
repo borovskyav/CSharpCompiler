@@ -30,7 +30,6 @@ Run CSharpCompiler executable file:
   - [x] Windows x86-x64 (.zip)
   - [x] MacOS x86 (.tar.gz)
   - [x] Linux x86 (.tag.gz)
-  - [ ] MacOS ARM (.tar.gz) (*)
 - [x] Рефакторинг
   - [x] Декомпозиция
   - [x] Packages Extractor
@@ -41,12 +40,10 @@ Run CSharpCompiler executable file:
     - [x] Рефакторинг
     - [x] Кастомные NuGet-source
     - [x] Транзитивные зависимости NuGet-пакетов
-    - [ ] Переехать на RemoteDependencyWalker (*)
     - [x] Что будет происходить если резолвер не смог разрезолвить граф? (*)
   - [x] DLL Extractor
     - [x] Рефакторинг
     - [x] Выбирать наиболее подходящую версию пакета
-    - [ ] Правильное подлючение runtime-пакетов (*)
   - [x] Roslyn Compiler
     - [x] Рефакторинг
     - [x] Unsafe флаг
@@ -56,7 +53,6 @@ Run CSharpCompiler executable file:
 - [x] Проверить что скомпилированная DLL работает
   - [x] Собрать все файлы в одной папке
   - [x] Генерация runtimeconfig.json
-  - [ ] Настроить CI проверки работы скомпилированной DLL (*)
 - [x] Additional requirements
 
   - [x] Compilation result should be cached between runs at a system-specific proper location following
@@ -64,4 +60,9 @@ Run CSharpCompiler executable file:
   - [x] Many instances of the program may be running in parallel
 - [x] Прокинуть CancellationToken везде, где я забыл это сделать
 - [x] Сделать красивые сообщения логгирования
-- [ ] Прибраться в использовании Microsoft.NETCore.App.Ref - не тянуть весь пакет, брать только список зависимостей (*)
+- [ ] Доделки
+  - [ ] Прибраться в использовании Microsoft.NETCore.App.Ref - не тянуть весь пакет, брать только список зависимостей (*)
+  - [ ] Переехать на RemoteDependencyWalker (*)
+  - [ ] Настроить CI проверки работы скомпилированной DLL (*)
+  - [ ] Правильное подлючение runtime-пакетов (*)
+  - [ ] MacOS ARM (.tar.gz) (*)
