@@ -100,7 +100,7 @@ class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
         var fileName = Path.GetFileName(sourcePath);
         var targetPath = Path.Combine(targetDirectory, fileName);
         if(File.Exists(targetPath))
-            return null;
+            return null!;
         using var targetStream = File.OpenWrite(targetPath);
         sourceStream.CopyTo(targetStream);
         return targetPath;

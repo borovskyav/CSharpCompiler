@@ -22,7 +22,7 @@ internal class CustomPackagesDependencyProvider : IDependencyProvider
     public Library GetLibrary(LibraryRange libraryRange, NuGetFramework targetFramework)
     {
         if(libraryRange.Name != projectLibraryRange.Name)
-            return null;
+            return null!;
 
         return new Library
             {
