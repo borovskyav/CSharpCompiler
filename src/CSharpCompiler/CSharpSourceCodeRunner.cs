@@ -2,20 +2,17 @@
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
-using CSharpCompiler.NugetPackageLibrariesExtractor;
+using CSharpCompiler.NugetPackageLibrariesExtracting;
 using CSharpCompiler.NugetPackagesDownloader;
 using CSharpCompiler.SyntaxTreeBuilder;
 
 using Microsoft.CodeAnalysis;
-
-using Vostok.Logging.Abstractions;
 
 namespace CSharpCompiler;
 
 internal class CSharpSourceCodeRunner
 {
     public CSharpSourceCodeRunner(
-        ILog logger,
         ICompileDirectoryDetector compileDirectoryDetector,
         ISyntaxTreeBuilder syntaxTreeBuilder,
         ICSharpCommentExtractor cSharpCommentExtractor,
@@ -34,7 +31,6 @@ internal class CSharpSourceCodeRunner
         this.cSharpCompiler = cSharpCompiler;
         this.cSharpCommentExtractor = cSharpCommentExtractor;
         this.nugetPackagesParser = nugetPackagesParser;
-        this.logger = logger.ForContext<CSharpSourceCodeRunner>();
     }
 
     public async Task<int> RunAsync(CSharpSourceCodeRunnerData data, CancellationToken token = default)
@@ -87,5 +83,4 @@ internal class CSharpSourceCodeRunner
     private readonly INugetPackageLibrariesExtractor nugetPackageLibrariesExtractor;
     private readonly ICSharpCompiler cSharpCompiler;
     private readonly IExternalExecutableRunner externalExecutableRunner;
-    private readonly ILog logger;
 }

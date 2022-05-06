@@ -1,6 +1,6 @@
 ﻿using CSharpCompiler.NugetPackagesDownloader;
 
-namespace CSharpCompiler.NugetPackageLibrariesExtractor;
+namespace CSharpCompiler.NugetPackageLibrariesExtracting;
 
 internal interface INugetPackageLibrariesExtractor
 {

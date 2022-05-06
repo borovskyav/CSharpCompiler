@@ -2,7 +2,7 @@
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
-using CSharpCompiler.NugetPackageLibrariesExtractor;
+using CSharpCompiler.NugetPackageLibrariesExtracting;
 using CSharpCompiler.NugetPackagesDownloader;
 using CSharpCompiler.SyntaxTreeBuilder;
 
@@ -15,7 +15,7 @@ public class FullCycleTests
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
-        var tempPath = Path.Combine(Path.GetTempPath(), "CSharpCompiler");
+        var tempPath = Path.Combine(Path.GetTempPath(), "CSharpCompilerTests");
         if(!Directory.Exists(tempPath))
             return;
         var di = new DirectoryInfo(tempPath);
@@ -26,16 +26,18 @@ public class FullCycleTests
     [SetUp]
     public void SetUp()
     {
+        ApplicationConstants.ApplicationName = "CSharpCompilerTests";
+        ApplicationConstants.OutputFileName = $"Generated-{Guid.NewGuid().ToString()}.dll";
+
         var logger = new ConsoleLog();
         var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
         codeRunner = new CSharpSourceCodeRunner(
-            logger,
-            new CompileDirectoryDetector(logger, "CSharpCompilerTests", $"Generated-{Guid.NewGuid().ToString()}.dll"),
+            new CompileDirectoryDetector(logger, ApplicationConstants.ApplicationName, ApplicationConstants.OutputFileName),
             new RoslynSyntaxTreeBuilder(roslynDiagnosticResultAnalyzer),
             new RoslynSyntaxTreeCommentExtractor(),
             new NugetPackagesParser(logger),
-            new NugetClientBasedPackagesDownloader(logger, "net6.0"),
-            new NugetPackageLibrariesExtractor(logger, "net6.0"),
+            new NugetClientBasedPackagesDownloader(logger, ApplicationConstants.Framework, ApplicationConstants.Runtime),
+            new NugetPackageLibrariesExtractor(logger, ApplicationConstants.Framework),
             new RoslynCSharpCompiler(roslynDiagnosticResultAnalyzer, logger),
             new InProcessExecutableRunner(logger));
     }
@@ -125,7 +127,7 @@ public class FullCycleTests
             new[] { "print", "something" },
             false);
         Func<Task<int>> act = async () => await codeRunner!.RunAsync(data);
-        await act.Should().ThrowAsync<Exception>().WithMessage("Package Nancy found but package framework did not resolved");
+        await act.Should().ThrowAsync<Exception>().WithMessage("Package Nancy.Hosting.Self found but package framework did not resolved");
     }
 
     [Test]

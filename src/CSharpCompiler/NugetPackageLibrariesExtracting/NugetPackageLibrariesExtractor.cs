@@ -7,7 +7,7 @@ using NuGet.Protocol.Core.Types;
 
 using Vostok.Logging.Abstractions;
 
-namespace CSharpCompiler.NugetPackageLibrariesExtractor;
+namespace CSharpCompiler.NugetPackageLibrariesExtracting;
 
 class NugetPackageLibrariesExtractor : INugetPackageLibrariesExtractor
 {

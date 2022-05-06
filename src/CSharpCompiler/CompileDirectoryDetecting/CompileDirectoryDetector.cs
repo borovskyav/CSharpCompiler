@@ -7,11 +7,11 @@ namespace CSharpCompiler.CompileDirectoryDetecting;
 
 internal class CompileDirectoryDetector : ICompileDirectoryDetector
 {
-    public CompileDirectoryDetector(ILog logger, string tempDirectoryName, string dllFileName)
+    public CompileDirectoryDetector(ILog logger, string tempDirectoryName, string outputFileName)
     {
         this.logger = logger.ForContext<CompileDirectoryDetector>();
         this.tempDirectoryName = tempDirectoryName;
-        this.dllFileName = dllFileName;
+        this.outputFileName = outputFileName;
     }
 
     public CompileDirectoryDetectResult Detect(string[] fileContents, bool allowUnsafe)
@@ -20,7 +20,7 @@ internal class CompileDirectoryDetector : ICompileDirectoryDetector
         var tempDirectoryPath = Path.Combine(globalTempDirectoryPath, tempDirectoryName);
         var compileDirectoryName = CalculateHashCode(fileContents.Concat(new[] { allowUnsafe.ToString() }).ToArray());
         var compileDirectoryPath = Path.Combine(tempDirectoryPath, compileDirectoryName);
-        var dllPath = Path.Combine(compileDirectoryPath, dllFileName);
+        var dllPath = Path.Combine(compileDirectoryPath, outputFileName);
         if(File.Exists(dllPath))
         {
             logger.Info("Given files have been compiled already, reuse previous build from {dllPath}", dllPath);
@@ -53,5 +53,5 @@ internal class CompileDirectoryDetector : ICompileDirectoryDetector
 
     private readonly ILog logger;
     private readonly string tempDirectoryName;
-    private readonly string dllFileName;
+    private readonly string outputFileName;
 }

@@ -4,6 +4,7 @@ using CSharpCompiler.CompileDirectoryDetecting;
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
+using CSharpCompiler.NugetPackageLibrariesExtracting;
 using CSharpCompiler.NugetPackagesDownloader;
 using CSharpCompiler.SyntaxTreeBuilder;
 
@@ -17,29 +18,21 @@ namespace CSharpCompiler;
 
 internal class Program
 {
-#if DEBUG
-    private const LogLevel logLevel = LogLevel.Debug;
-#else
-    private const LogLevel logLevel = LogLevel.Info;
-#endif
-
     public static async Task<int> Main(string[] arguments)
     {
         var logger = CreateLogger();
-        const string frameworkVersion = "net6.0";
-        var downloader = new NugetClientBasedPackagesDownloader(logger, frameworkVersion);
+        var downloader = new NugetClientBasedPackagesDownloader(logger, ApplicationConstants.Framework, ApplicationConstants.Runtime);
         var cancellationToken = ConfigureGracefulStop();
         try
         {
             var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
             var codeRunner = new CSharpSourceCodeRunner(
-                logger,
-                new CompileDirectoryDetector(logger, "CSharpCompiler", "Generated.dll"),
+                new CompileDirectoryDetector(logger, ApplicationConstants.ApplicationName, ApplicationConstants.OutputFileName),
                 new RoslynSyntaxTreeBuilder(roslynDiagnosticResultAnalyzer),
                 new RoslynSyntaxTreeCommentExtractor(),
                 new NugetPackagesParser(logger),
                 downloader,
-                new NugetPackageLibrariesExtractor.NugetPackageLibrariesExtractor(logger, frameworkVersion),
+                new NugetPackageLibrariesExtractor(logger, ApplicationConstants.Framework),
                 new RoslynCSharpCompiler(roslynDiagnosticResultAnalyzer, logger),
                 new InProcessExecutableRunner(logger));
 
@@ -67,7 +60,7 @@ internal class Program
     {
         const string logFormat = "{Timestamp:hh:mm:ss.fff} {Level} {Prefix}{Message}{NewLine}";
         var logSettings = new ConsoleLogSettings { OutputTemplate = OutputTemplate.Parse(logFormat) };
-        return new SynchronousConsoleLog(logSettings).WithMinimumLevel(logLevel);
+        return new SynchronousConsoleLog(logSettings).WithMinimumLevel(ApplicationConstants.LogLevel);
     }
 
     private static CancellationToken ConfigureGracefulStop()
