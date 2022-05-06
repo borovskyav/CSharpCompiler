@@ -45,7 +45,7 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
             logger.Info("Compilation completed, output file: {output}", dllPath);
 
             diagnosticResultAnalyzer.Analyze(result.Diagnostics, result.Success, showWarningsOnSuccess: true);
-            CopyRuntimeConfig(dllPath);
+            GenerateRuntimeConfig(dllPath);
             return dllPath;
         }
         catch(Exception)
@@ -56,15 +56,20 @@ internal class RoslynCSharpCompiler : ICSharpCompiler
         }
     }
 
-    private void CopyRuntimeConfig(string dllPath)
-    {
-        const string runtimeconfig = "runtimeconfig.json";
-        var outputRuntimeConfigPath = Path.ChangeExtension(dllPath, runtimeconfig);
-        var currentRuntimeConfigPath = Path.ChangeExtension(typeof(Program).Assembly.Location, runtimeconfig);
+    private void GenerateRuntimeConfig(string dllPath)
+        => File.WriteAllText(Path.ChangeExtension(dllPath, runtimeConfigExtension), RuntimeConfigContent);
 
-        logger.Info($"Copying current {runtimeconfig} to {outputRuntimeConfigPath}");
-        File.Copy(currentRuntimeConfigPath, outputRuntimeConfigPath);
+    private const string runtimeConfigExtension = "runtimeconfig.json";
+
+    private string RuntimeConfigContent => @"{
+  ""runtimeOptions"": {
+    ""tfm"": ""net6.0"",
+    ""framework"": {
+      ""name"": ""Microsoft.NETCore.App"",
+      ""version"": ""6.0.0""
     }
+  }
+}";
 
     private readonly IDiagnosticResultAnalyzer diagnosticResultAnalyzer;
 
