@@ -49,7 +49,7 @@ internal class Program
             if(string.IsNullOrEmpty(exception.Message))
                 throw;
 
-            if (logger != null)
+            if(logger != null)
                 logger.Error(exception.Message);
             else
                 Console.WriteLine(exception.Message);
