@@ -1,4 +1,4 @@
-﻿using CSharpCompiler.CompileDirectoryDetecting;
+﻿using CSharpCompiler.CompileDirectoryManagement;
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
@@ -13,7 +13,7 @@ namespace CSharpCompiler;
 internal class CSharpSourceCodeRunner
 {
     public CSharpSourceCodeRunner(
-        ICompileDirectoryDetector compileDirectoryDetector,
+        ICompileDirectoryManager compileDirectoryManager,
         ISyntaxTreeBuilder syntaxTreeBuilder,
         ICSharpCommentExtractor cSharpCommentExtractor,
         NugetPackagesParser nugetPackagesParser,
@@ -23,7 +23,7 @@ internal class CSharpSourceCodeRunner
         IExternalExecutableRunner externalExecutableRunner
     )
     {
-        this.compileDirectoryDetector = compileDirectoryDetector;
+        this.compileDirectoryManager = compileDirectoryManager;
         this.syntaxTreeBuilder = syntaxTreeBuilder;
         this.externalExecutableRunner = externalExecutableRunner;
         this.nugetPackageLibrariesExtractor = nugetPackageLibrariesExtractor;
@@ -49,7 +49,7 @@ internal class CSharpSourceCodeRunner
     private async Task<string> BuildSourcesAsync(CSharpSourceCodeRunnerData data, CancellationToken token)
     {
         var fileContents = await Task.WhenAll(data.FilesPath.Select(async x => await File.ReadAllTextAsync(x, token)));
-        var result = compileDirectoryDetector.Detect(fileContents, data.AllowUnsafe);
+        using var result = await compileDirectoryManager.AcquireCompileDirectoryAsync(fileContents, data.AllowUnsafe, token);
         if(result.DllExists)
             return result.DllPath;
         var syntaxTree = syntaxTreeBuilder.BuildAndAnalyzeTreeAsync(fileContents, token);
@@ -75,7 +75,7 @@ internal class CSharpSourceCodeRunner
                .ToList();
     }
 
-    private readonly ICompileDirectoryDetector compileDirectoryDetector;
+    private readonly ICompileDirectoryManager compileDirectoryManager;
     private readonly ISyntaxTreeBuilder syntaxTreeBuilder;
     private readonly ICSharpCommentExtractor cSharpCommentExtractor;
     private readonly NugetPackagesParser nugetPackagesParser;

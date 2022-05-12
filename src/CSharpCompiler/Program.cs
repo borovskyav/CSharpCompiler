@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-using CSharpCompiler.CompileDirectoryDetecting;
+using CSharpCompiler.CompileDirectoryManagement;
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
@@ -29,7 +29,7 @@ internal class Program
             var cancellationToken = ConfigureGracefulStop();
             var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
             var codeRunner = new CSharpSourceCodeRunner(
-                new CompileDirectoryDetector(logger, ApplicationConstants.ApplicationName, ApplicationConstants.OutputFileName),
+                new CompileDirectoryManager(logger, ApplicationConstants.ApplicationName, ApplicationConstants.OutputFileName),
                 new RoslynSyntaxTreeBuilder(roslynDiagnosticResultAnalyzer),
                 new RoslynSyntaxTreeCommentExtractor(),
                 new NugetPackagesParser(logger),

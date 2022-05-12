@@ -32,7 +32,7 @@ public class FullCycleTests
         var logger = new ConsoleLog();
         var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
         codeRunner = new CSharpSourceCodeRunner(
-            new CompileDirectoryDetector(logger, ApplicationConstants.ApplicationName, ApplicationConstants.OutputFileName),
+            new CompileDirectoryManager(logger, ApplicationConstants.ApplicationName, ApplicationConstants.OutputFileName),
             new RoslynSyntaxTreeBuilder(roslynDiagnosticResultAnalyzer),
             new RoslynSyntaxTreeCommentExtractor(),
             new NugetPackagesParser(logger),
