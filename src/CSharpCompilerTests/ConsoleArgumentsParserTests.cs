@@ -14,8 +14,8 @@ public class CompilerArgumentsParserTests
     public void Test(string arguments, string expectedFiles, string expectedArguments, bool expectedAllowUnsafe)
     {
         var result = ConsoleArgumentsParser.Parse(arguments.Split(" ", StringSplitOptions.RemoveEmptyEntries));
-        result.FilesPath.Should().BeEquivalentTo(expectedFiles.Split(" ", StringSplitOptions.RemoveEmptyEntries));
-        result.ProcessArguments.Should().BeEquivalentTo(expectedArguments.Split(" ", StringSplitOptions.RemoveEmptyEntries));
-        result.AllowUnsafe.Should().Be(expectedAllowUnsafe);
+        result.data.FilesPath.Should().BeEquivalentTo(expectedFiles.Split(" ", StringSplitOptions.RemoveEmptyEntries));
+        result.data.ProcessArguments.Should().BeEquivalentTo(expectedArguments.Split(" ", StringSplitOptions.RemoveEmptyEntries));
+        result.data.AllowUnsafe.Should().Be(expectedAllowUnsafe);
     }
 }

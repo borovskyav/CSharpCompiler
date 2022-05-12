@@ -38,8 +38,13 @@ internal class Program
                 new RoslynCSharpCompiler(roslynDiagnosticResultAnalyzer, logger),
                 new InProcessExecutableRunner(logger));
 
-            var parseResult = ConsoleArgumentsParser.Parse(arguments);
-            return await codeRunner.RunAsync(parseResult, cancellationToken);
+            var (data, showHelp) = ConsoleArgumentsParser.Parse(arguments);
+            if(showHelp)
+            {
+                PrintHelp();
+                return 0;
+            }
+            return await codeRunner.RunAsync(data, cancellationToken);
         }
         catch(Exception exception)
         {
@@ -59,6 +64,19 @@ internal class Program
         {
             downloader?.Dispose();
         }
+    }
+
+    private static void PrintHelp()
+    {
+        Console.WriteLine(@"CSharp compiler:
+Arguments: [Flags | -allowUnsafe] [Files | 1.cs 2.cs 3.cs] -- [Compiled program arguments | 1 2 3]
+
+Additional flags:
+    -allowUnsafe: this flag enables compiling in unsafe mode.
+
+Files: A list of all relative paths of the source code files to compile, separated by spaces.
+Compiled Program arguments: Command line arguments to be passed to the compiled program.
+");
     }
 
     private static ILog CreateLogger()
