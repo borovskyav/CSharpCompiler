@@ -24,14 +24,14 @@ internal class CompileDirectoryDetector : ICompileDirectoryDetector
         if(File.Exists(dllPath))
         {
             logger.Info("Given files have been compiled already, reuse previous build from {dllPath}", dllPath);
-            return new CompileDirectoryDetectResult(compileDirectoryPath, dllPath, true, true);
+            return new CompileDirectoryDetectResult(compileDirectoryPath, dllPath, true);
         }
 
         if(Directory.Exists(compileDirectoryPath))
         {
             logger.Info("Compile directory exists, but entry point file did not found, cleanup it...");
             Directory.Delete(Path.Combine(compileDirectoryPath), true);
-            return new CompileDirectoryDetectResult(compileDirectoryPath, dllPath, true);
+            return new CompileDirectoryDetectResult(compileDirectoryPath, dllPath);
         }
 
         Directory.CreateDirectory(compileDirectoryPath);
