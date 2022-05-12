@@ -41,14 +41,8 @@ internal class CompileDirectoryDetector : ICompileDirectoryDetector
     private string CalculateHashCode(IReadOnlyList<string> array)
     {
         using var md5 = MD5.Create();
-        var encoder = Encoding.UTF8;
-        var bytes = array.Aggregate(new List<byte>(),
-                                    (total, next) =>
-                                        {
-                                            total.AddRange(md5.ComputeHash(encoder.GetBytes(next)));
-                                            return total;
-                                        });
-        return BitConverter.ToString(md5.ComputeHash(bytes.ToArray())).Replace("-", string.Empty).ToLowerInvariant();
+        var bytes = array.SelectMany(x => md5.ComputeHash(Encoding.UTF8.GetBytes(x))).ToArray();
+        return BitConverter.ToString(md5.ComputeHash(bytes)).Replace("-", string.Empty).ToLowerInvariant();
     }
 
     private readonly ILog logger;
