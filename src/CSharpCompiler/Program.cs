@@ -20,11 +20,13 @@ internal class Program
 {
     public static async Task<int> Main(string[] arguments)
     {
-        var logger = CreateLogger();
-        var downloader = new NugetClientBasedPackagesDownloader(logger, ApplicationConstants.Framework, ApplicationConstants.Runtime);
-        var cancellationToken = ConfigureGracefulStop();
+        ILog? logger = null;
+        NugetClientBasedPackagesDownloader? downloader = null;
         try
         {
+            logger = CreateLogger();
+            downloader = new NugetClientBasedPackagesDownloader(logger, ApplicationConstants.Framework, ApplicationConstants.Runtime);
+            var cancellationToken = ConfigureGracefulStop();
             var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
             var codeRunner = new CSharpSourceCodeRunner(
                 new CompileDirectoryDetector(logger, ApplicationConstants.ApplicationName, ApplicationConstants.OutputFileName),
@@ -47,12 +49,15 @@ internal class Program
             if(string.IsNullOrEmpty(exception.Message))
                 throw;
 
-            logger.Error(exception.Message);
+            if (logger != null)
+                logger.Error(exception.Message);
+            else
+                Console.WriteLine(exception.Message);
             return 1;
         }
         finally
         {
-            downloader.Dispose();
+            downloader?.Dispose();
         }
     }
 
