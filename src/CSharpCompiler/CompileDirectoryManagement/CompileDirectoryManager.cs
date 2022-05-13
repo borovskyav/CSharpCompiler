@@ -23,10 +23,10 @@ internal class CompileDirectoryManager : ICompileDirectoryManager
         var dllPath = Path.Combine(compileDirectoryPath, outputFileName);
         if(File.Exists(dllPath))
         {
-            logger.Info("Given files have been compiled already, reuse previous build from {dllPath}", dllPath);
+            LogDllExists(dllPath);
             return new CompileDirectoryAcquireResult(compileDirectoryPath, dllPath, null, true);
         }
-        
+
         Directory.CreateDirectory(compileDirectoryPath);
 
         var fileLock = await FileLock.CreateAsync(compileDirectoryPath, token);
@@ -34,7 +34,7 @@ internal class CompileDirectoryManager : ICompileDirectoryManager
         {
             if(File.Exists(dllPath))
             {
-                logger.Info("Given files have been compiled already, reuse previous build from {dllPath}", dllPath);
+                LogDllExists(dllPath);
                 return new CompileDirectoryAcquireResult(compileDirectoryPath, dllPath, fileLock, true);
             }
 
@@ -48,14 +48,17 @@ internal class CompileDirectoryManager : ICompileDirectoryManager
         }
     }
 
+    private void LogDllExists(string dllPath)
+        => logger.Info("Given files have been compiled already, reuse previous build from {dllPath}", dllPath);
+
     private void DeleteAllFilesInDirectoryExcept(string directoryPath, string excludePaths)
     {
         var directoryInfo = new DirectoryInfo(directoryPath);
 
-        foreach (var file in directoryInfo.GetFiles().Where(x => x.FullName != excludePaths))
+        foreach(var file in directoryInfo.GetFiles().Where(x => x.FullName != excludePaths))
             file.Delete();
-        foreach (var dir in directoryInfo.GetDirectories().Where(x => x.FullName != excludePaths))
-            dir.Delete(true);
+        foreach(var directory in directoryInfo.GetDirectories().Where(x => x.FullName != excludePaths))
+            directory.Delete(true);
     }
 
     private string CalculateHashCode(IReadOnlyList<string> array)

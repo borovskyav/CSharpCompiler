@@ -10,7 +10,7 @@ public class FileLockTests
         const int tasksCount = 50;
         const int iterations = 10;
         var lockFileDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        
+
         var verificationSemaphore = new SemaphoreSlim(1);
 
         var tasks = Enumerable.Range(0, tasksCount).Select(LoopAsync);
@@ -33,7 +33,7 @@ public class FileLockTests
                         loopResults.Add(false);
                         continue;
                     }
-                    
+
                     await Task.Delay(TimeSpan.FromMilliseconds(1));
                     verificationSemaphore.Release();
                     loopResults.Add(true);
