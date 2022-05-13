@@ -1,11 +1,19 @@
-﻿namespace CSharpCompiler.CompileDirectoryManagement;
+﻿using System.Runtime.InteropServices;
+
+namespace CSharpCompiler.CompileDirectoryManagement;
 
 internal class FileLock : IDisposable
 {
     private FileLock(string fileDirectory)
     {
         FilePath = Path.Combine(fileDirectory, lockFileName);
-        fileStream = File.Open(FilePath, FileMode.Create);
+        fileStream = new FileStream(FilePath,
+                                    FileMode.OpenOrCreate,
+                                    FileAccess.ReadWrite,
+                                    FileShare.None,
+                                    32,
+                                    options: RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? FileOptions.DeleteOnClose : FileOptions.None
+        );
     }
 
     public string FilePath { get; }
@@ -17,13 +25,6 @@ internal class FileLock : IDisposable
     public void Dispose()
     {
         fileStream.Close();
-        try
-        {
-            File.Delete(FilePath);
-        }
-        catch
-        { // ignored
-        }
     }
 
     public static async Task<FileLock> CreateAsync(string filePath, CancellationToken token = default)
@@ -31,20 +32,20 @@ internal class FileLock : IDisposable
         var attempts = 0;
         while(attempts < maxAttempts)
         {
-            token.ThrowIfCancellationRequested();
             try
             {
                 return new FileLock(filePath);
             }
-            catch (Exception e) when (e is UnauthorizedAccessException or IOException)
+            catch(Exception e) when(e is UnauthorizedAccessException or IOException)
             {
+                token.ThrowIfCancellationRequested();
                 await Task.Delay(delayInMs, token);
             }
 
             attempts++;
         }
 
-        throw new Exception($"Can not create lock file by path: {filePath}, exit from program");
+        throw new Exception($"Can not create lock file by path: {filePath}");
     }
 
     private readonly FileStream fileStream;
