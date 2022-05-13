@@ -1,4 +1,4 @@
-﻿using CSharpCompiler.CompileDirectoryDetecting;
+﻿using CSharpCompiler.CompileDirectoryManagement;
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;

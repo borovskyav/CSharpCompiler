@@ -10,14 +10,20 @@ internal class FileLock : IDisposable
 
     public string FilePath { get; }
 
-    private const int maxAttempts = 60;
-    private const int delayInMs = 1000;
+    private const int maxAttempts = 60000 / delayInMs;
+    private const int delayInMs = 10;
     private const string lockFileName = ".lock";
 
     public void Dispose()
     {
         fileStream.Close();
-        File.Delete(FilePath);
+        try
+        {
+            File.Delete(FilePath);
+        }
+        catch
+        { // ignored
+        }
     }
 
     public static async Task<FileLock> CreateAsync(string filePath, CancellationToken token = default)
@@ -30,7 +36,7 @@ internal class FileLock : IDisposable
             {
                 return new FileLock(filePath);
             }
-            catch(IOException)
+            catch (Exception e) when (e is UnauthorizedAccessException or IOException)
             {
                 await Task.Delay(delayInMs, token);
             }
