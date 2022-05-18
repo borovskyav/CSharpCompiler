@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 
+using Microsoft.CodeAnalysis;
+
 using Vostok.Logging.Abstractions;
 
 namespace CSharpCompiler.ExternalExecutableRunner;
@@ -17,11 +19,7 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
 
         var mainList = new List<(Type type, MethodInfo methodInfo)>();
         foreach(var type in assembly.GetTypes())
-        {
-            var methodInfo = TryGetMainMethodInfo(type);
-            if(methodInfo != null)
-                mainList.Add((type, methodInfo));
-        }
+            mainList.AddRange(TryGetMainMethodInfo(type).Select(x => (type, x)));
 
         if(mainList.Count == 0)
             throw new Exception("There is no method \"Main\" in executable dll");
@@ -34,13 +32,13 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
         return await HandleResult(result);
     }
 
-    private MethodInfo? TryGetMainMethodInfo(Type type)
+    private IEnumerable<MethodInfo> TryGetMainMethodInfo(Type type)
     {
-        var possibleMainNames = new[] { "Main", "<Main>$" };
         var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
         return possibleMainNames
                .Select(possibleMainName => type.GetMethod(possibleMainName, bindingFlags))
-               .FirstOrDefault(methodInfo => methodInfo != null);
+               .Where(methodInfo => methodInfo != null)
+               .Where(methodInfo => validReturnTypes.Contains(methodInfo!.ReturnType))!;
     }
 
     private object? InvokeMethod(Type type, MethodInfo methodInfo, IReadOnlyList<string> arguments)
@@ -75,4 +73,7 @@ internal class InProcessExecutableRunner : IExternalExecutableRunner
     }
 
     private readonly ILog logger;
+
+    private readonly HashSet<Type> validReturnTypes = new() { typeof(Task<int>), typeof(Task), typeof(int), typeof(void) };
+    private readonly string[] possibleMainNames = { WellKnownMemberNames.EntryPointMethodName, WellKnownMemberNames.TopLevelStatementsEntryPointMethodName };
 }

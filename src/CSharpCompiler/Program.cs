@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-using CSharpCompiler.CompileDirectoryDetecting;
+using CSharpCompiler.CompileDirectoryManagement;
 using CSharpCompiler.CSharpCommentExtractor;
 using CSharpCompiler.CSharpCompiler;
 using CSharpCompiler.ExternalExecutableRunner;
@@ -20,14 +20,16 @@ internal class Program
 {
     public static async Task<int> Main(string[] arguments)
     {
-        var logger = CreateLogger();
-        var downloader = new NugetClientBasedPackagesDownloader(logger, ApplicationConstants.Framework, ApplicationConstants.Runtime);
-        var cancellationToken = ConfigureGracefulStop();
+        ILog? logger = null;
+        NugetClientBasedPackagesDownloader? downloader = null;
         try
         {
+            logger = CreateLogger();
+            downloader = new NugetClientBasedPackagesDownloader(logger, ApplicationConstants.Framework, ApplicationConstants.Runtime);
+            var cancellationToken = ConfigureGracefulStop();
             var roslynDiagnosticResultAnalyzer = new RoslynDiagnosticResultAnalyzer(logger);
             var codeRunner = new CSharpSourceCodeRunner(
-                new CompileDirectoryDetector(logger, ApplicationConstants.ApplicationName, ApplicationConstants.OutputFileName),
+                new CompileDirectoryManager(logger, ApplicationConstants.ApplicationName, ApplicationConstants.OutputFileName),
                 new RoslynSyntaxTreeBuilder(roslynDiagnosticResultAnalyzer),
                 new RoslynSyntaxTreeCommentExtractor(),
                 new NugetPackagesParser(logger),
@@ -36,8 +38,13 @@ internal class Program
                 new RoslynCSharpCompiler(roslynDiagnosticResultAnalyzer, logger),
                 new InProcessExecutableRunner(logger));
 
-            var parseResult = ConsoleArgumentsParser.Parse(arguments);
-            return await codeRunner.RunAsync(parseResult, cancellationToken);
+            var (data, showHelp) = ConsoleArgumentsParser.Parse(arguments);
+            if(showHelp)
+            {
+                PrintHelp();
+                return 0;
+            }
+            return await codeRunner.RunAsync(data, cancellationToken);
         }
         catch(Exception exception)
         {
@@ -47,13 +54,29 @@ internal class Program
             if(string.IsNullOrEmpty(exception.Message))
                 throw;
 
-            logger.Error(exception.Message);
+            if(logger != null)
+                logger.Error(exception.Message);
+            else
+                Console.WriteLine(exception.Message);
             return 1;
         }
         finally
         {
-            downloader.Dispose();
+            downloader?.Dispose();
         }
+    }
+
+    private static void PrintHelp()
+    {
+        Console.WriteLine(@"CSharp compiler:
+Arguments: [Flags | -allowUnsafe] [Files | 1.cs 2.cs 3.cs] -- [Compiled program arguments | 1 2 3]
+
+Additional flags:
+    -allowUnsafe: this flag enables compiling in unsafe mode.
+
+Files: A list of all relative paths of the source code files to compile, separated by spaces.
+Compiled Program arguments: Command line arguments to be passed to the compiled program.
+");
     }
 
     private static ILog CreateLogger()

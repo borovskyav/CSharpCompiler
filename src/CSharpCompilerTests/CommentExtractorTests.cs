@@ -26,8 +26,9 @@ internal class CommentExtractorTests
     [TestCaseSource(nameof(multilineTestFixtures))]
     public async Task MultilineTest(string fileName, string[] expectedComments)
     {
-        var files = TestHelpers.GetFilesPath(fileName);
-        var tree = treeBuilder.BuildAndAnalyzeTreeAsync(files.Select(File.ReadAllText).ToArray());
+        var filesPath = TestHelpers.GetFilesPath(fileName);
+        var files = filesPath.Select(File.ReadAllText).Select(x => x.Replace("\r\n", Environment.NewLine)).ToArray();
+        var tree = treeBuilder.BuildAndAnalyzeTreeAsync(files);
         (await extractor.ExtractAsync(tree)).Should().BeEquivalentTo(expectedComments);
     }
 

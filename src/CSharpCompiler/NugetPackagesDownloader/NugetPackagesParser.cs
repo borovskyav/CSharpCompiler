@@ -41,5 +41,5 @@ internal class NugetPackagesParser
 
     private readonly ILog logger;
 
-    private static readonly Regex includePackageRegex = new("\\s*Package:\\s*(?<package>[\\w\\d.]+)\\s+(?<version>[\\d.-]+[\\w]+)");
+    private static readonly Regex includePackageRegex = new(@"\s*Package:\s*(?<package>[\w,.-]+)\s+(?<version>[\d]+[\w.+-]+)");
 }

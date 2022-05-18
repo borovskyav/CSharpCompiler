@@ -2,7 +2,7 @@ namespace CSharpCompiler;
 
 internal static class ConsoleArgumentsParser
 {
-    public static CSharpSourceCodeRunnerData Parse(string[] arguments)
+    public static (CSharpSourceCodeRunnerData data, bool showHelp) Parse(string[] arguments)
     {
         var compilerArgumentsHash = new HashSet<string>();
         var filesList = new List<string>();
@@ -32,14 +32,17 @@ internal static class ConsoleArgumentsParser
             programArgumentsList.Add(argument);
         }
 
-        return new CSharpSourceCodeRunnerData(
+        var data = new CSharpSourceCodeRunnerData(
             filesList,
             programArgumentsList,
             compilerArgumentsHash.Contains(allowUnsafeArgumentName)
         );
+        var showHelp = compilerArgumentsHash.Contains(showHelpArgumentName);
+        return (data, showHelp);
     }
-
+    
     private const string allowUnsafeArgumentName = "-allowUnsafe";
+    private const string showHelpArgumentName = "-help";
 
     private const string delimiter = "--";
     private const string argumentsSuffix = "-";
